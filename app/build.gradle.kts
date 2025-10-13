@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -61,6 +62,7 @@ dependencies {
     implementation(libs.serializer.jason)
     ksp("androidx.room:room-compiler:$room")
     implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

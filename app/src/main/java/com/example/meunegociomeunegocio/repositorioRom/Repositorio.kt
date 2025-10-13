@@ -1,5 +1,6 @@
 package com.example.meunegociomeunegocio.repositorioRom
 
+import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,24 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     private  val coroutinesScope= CoroutineScope(Dispatchers.IO)
     // fluxos
     fun fluxoDeClientes(): Flow<List<Cliente>> =dao.fluxoDeClientes().map { it.map { Cliente(it.id,it.nome,it.cpf,it.cnpj) } }
+    fun fluxoDadosDoCliente(id: Int)=dao.ClientesPorId(id).map {
+        if(it==null)null
+        else
+            DadosDeClientes(Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj),
+                            enderecos =  it.enderecos.map {
+                                Endereco(id=it.id,
+                                         cidade = it.cidade,
+                                         idCli = it.idCli ,
+                                         estado = it.estado,
+                                         bairro = it.bairro,
+                                         rua = it.rua,
+                                         complemento = it.complemeto,
+                                         numero = it.numero)
+                            },
+                            telefones = it.telefones.map {
+                                 Telefone(it.id, idCli = it.idCli ,numero = it.numero,ddd=it.ddd)
+                            })
+    }
     fun fluxoProdutoServico(): Flow<List<ProdutoServico>> = dao.fluxoProdutoServico().map { it.map { ProdutoServico(it.id,it.servico,it.nome,it.descrisao,it.preco,it.atiovo)  } }
     fun fluxoRequisicao()=dao.fluxoRequisicao()
     fun fluxoHistoricoDeMudancas(id:Int)=dao.HistoricoDeMudancaPorRequisicao(id).map { it.map {  Mudanca(it.logs.id,
@@ -22,9 +41,9 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     fun fluxoRequisicaoPorEstado(id:Int)=dao.requisicaoPorEstado(id)
     fun fluxoDeEstados()=dao.fluxoDeEstados()
     // acoes em clientes
-    suspend fun inserirCliente(cliente: EntidadeClientes)= coroutinesScope.launch {   dao.inserirClientes(cliente)}
-    suspend fun apagarCliente(clientes: EntidadeClientes)=coroutinesScope.launch { dao.deletarCliente(clientes) }
-    suspend fun atuAlizarCliente(clientes: EntidadeClientes)=coroutinesScope.launch { dao.atualizarCliente(clientes) }
+    suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.launch {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}
+    suspend fun apagarCliente(clientes: Cliente)=coroutinesScope.launch { dao.deletarCliente(EntidadeClientes(clientes.id,clientes.nome,clientes.cpf,clientes.cnpj)) }
+    suspend fun atuAlizarCliente(clientes: Cliente)=coroutinesScope.launch { dao.atualizarCliente( EntidadeClientes(clientes.id,clientes.nome,clientes.cpf,clientes.cnpj)) }
     //acoes em endereco
     suspend fun inserirEndereco(endereco: EntidadeEndereco)=coroutinesScope.launch { dao.insertEndereco(endereco) }
     suspend fun apagarEndereco(endereco: EntidadeEndereco)=coroutinesScope.launch { dao.apagarEndereco(endereco) }

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface Daos{
     //querys de clientes
-    @Query("SELECT * FROM clientes")
+    @Query("SELECT * FROM clientes order by nome asc")
     fun fluxoDeClientes(): Flow<List<EntidadeClientes>>
     @Transaction
     @Query("SELECT * FROM clientes WHERE id = :id")
