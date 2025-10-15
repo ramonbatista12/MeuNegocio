@@ -10,6 +10,7 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -22,35 +23,47 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
-import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 
+import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
+import com.example.meunegociomeunegocio.viewModel.Pesquisa
+import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
+import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize: WindowSizeClass){
     val listaDeProdutos=vm.produtos.collectAsState(initial = emptyList())
-    LazyColumn(modifier = modifier.padding(horizontal = 5.dp)) {
+    Column(modifier = modifier.padding(horizontal = 5.dp)) {
+      BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
+    LazyColumn {
         stickyHeader{
             Cabesalho()
         }
@@ -59,8 +72,40 @@ fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize
         }
 
     }
+}
 
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelProdutos){
+    val coroutineScope =rememberCoroutineScope()
+    val estadoDaBara= remember { mutableStateOf(false) }
+    val texto =remember { mutableStateOf("") }
+    //val pesquisa =vm.fluxoDePesquisa.collectAsState(emptyList())
+    SearchBar(modifier = modifier,
+        inputField = { SearchBarDefaults.InputField(query = texto.value,
+            onQueryChange = {texto.value=it
+
+            },
+            onSearch = {
+
+            },
+            expanded = estadoDaBara.value,
+            onExpandedChange = {estadoDaBara.value=it},
+            placeholder = {Text("Pesquisar")},
+            leadingIcon ={ Icon(Icons.Default.Search,null) },
+            trailingIcon = {Icon(Icons.Default.Close,null,
+                Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+        expanded = estadoDaBara.value,
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        LazyColumn {
+            items(count = 0) {
+
+            }
+        }
+    }
 
 }
 
@@ -83,7 +128,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
 
 
             Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
-                Text(produto.nome, maxLines = 2,modifier=Modifier.width(70.dp))
+                Text(produto.nome, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.padding(10.dp))
                 Text(produto.preco.toString(), Modifier.width(70.dp))
                 Spacer(Modifier.padding(10.dp))
@@ -113,7 +158,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
             Column(Modifier.fillMaxWidth().align(Alignment.CenterStart).padding(top = 3.dp)){
                 AnimatedVisibility(visible = expandidido.value, Modifier){
                     Column (Modifier.fillMaxWidth().padding(start = 5.dp)){
-                        Row {Text("Produto :")
+                        Row {Text(if(produto.servico)"Serviço :" else "Produto :")
                             Text(produto.nome)}
                         Text(text = produto.descrisao, maxLines = 5,modifier =  Modifier)
                     }}}

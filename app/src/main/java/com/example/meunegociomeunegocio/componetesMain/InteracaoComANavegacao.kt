@@ -7,36 +7,55 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import com.example.meunegociomeunegocio.viewModel.ViewModelMain
+import kotlinx.coroutines.launch
 
 @Composable
-fun BaraLateral(windowSizeClass: WindowSizeClass){
+fun BaraLateral(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit){
+    LaunchedEffect(Unit) {
+        Log.d("Bara lateral","iniciada")
+    }
+
     when{
-        windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)->{
-            BaraLateralLarguraMedia(windowSizeClass)
-        }
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{
-            BaraLateralLarguraEspandida(windowSizeClass)
+        Log.d("Bara lateral","largura expandida  iniciada")
+        BaraLateralLarguraEspandida(windowSizeClass,
+            modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   })
         }
-        else ->{}
+        windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)->{
+            BaraLateralLarguraEspandida(windowSizeClass,
+                modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   })
+
+        }
+
+        else ->{
+
+        }
     }
 }
 
@@ -57,30 +76,43 @@ private fun BaraLateralLarguraMedia(windowSizeClass: WindowSizeClass,modifier: M
 
 
 @Composable
-private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,modifier: Modifier=Modifier){
+private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao)->Unit,modifier: Modifier=Modifier){
     when{
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)->{
+            LaunchedEffect(Unit) {
+                Log.d("Bara lateral","largura expandida altura media iniciada")
+            }
+            Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+                IconesDeDestino.listaDeIcones.forEach {
+                    ItemDeIconesDeDestino(destino = it,acao = acaoDeNavegacao)
+                }
+                FloatingActionButton(onClick = {}
+                ) {
+                    Icon(Icons.Default.Add,null)
 
+                }
+            }
         }
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_EXPANDED_LOWER_BOUND)->{
+            Log.d("Bara lateral","largura expandida altura expandida iniciada")
             Column(modifier = modifier) {
                 IconesDeDestino.listaDeIcones.forEach {
-                    ItemDeIconesDeDestino(destino = it)
+                    ItemDeIconesDeDestino(destino = it,acao = acaoDeNavegacao)
                 }
             }
         }
         else->{
-
+            Log.d("Bara lateral","largura expandida altura expandida else")
         }
     }
 }
 
 @Composable
-private  fun ItemDeIconesDeDestino(modifier: Modifier=Modifier,destino: IconesDeDestino){
+private  fun ItemDeIconesDeDestino(modifier: Modifier=Modifier,acao: (DestinosDeNavegacao) -> Unit, destino: IconesDeDestino){
     NavigationDrawerItem(label = {},
                          modifier = modifier,
                          selected = false,
-                         onClick = {},
+                         onClick = {acao(destino.rota)},
                          icon = {
                              Icon(painterResource(destino.idIcone),contentDescription = null)
                          })
@@ -93,6 +125,8 @@ fun BarraInferior(windowSizeClass: WindowSizeClass,
                   acaoDeNavegacao: (DestinosDeNavegacao)->Unit,
                   vm:ViewModelMain ){
     val estadoDaBAra=vm.estadoSelecaoBarasNavegaveis.collectAsState()
+    if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&!windowSizeClass.isWidthAtLeastBreakpoint(
+            WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND))
     BottomAppBar(modifier = modifier.padding(end = 5.dp, start = 5.dp), containerColor = MaterialTheme.colorScheme.background) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         IconesDeDestino.listaDeIcones.forEach {

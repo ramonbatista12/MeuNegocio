@@ -16,6 +16,9 @@ interface Daos{
     @Transaction
     @Query("SELECT * FROM clientes WHERE id = :id")
     fun ClientesPorId(id:Int):Flow<JuncaoClineteTelefoneEndereco?>
+    @Transaction
+    @Query("SELECT * FROM clientes WHERE nome  like '%'||:nome||'%' order by nome asc ")
+    fun pesquisaCliente(nome:String):Flow<List<JuncaoClineteTelefoneEndereco>>
     @Update
     suspend fun atualizarCliente(cliente: EntidadeClientes)
     @Insert
@@ -37,6 +40,12 @@ interface Daos{
     //querys Produto Servico
     @Query("Select* from produto_servico")
     fun fluxoProdutoServico():Flow<List<EntidadeProdutoServico>>
+    @Query("Select* from produto_servico where nome like '%'||:produto||'%' order by nome asc")
+    fun fluxoPesquisaProdutoNome(produto: String):Flow<List<EntidadeProdutoServico>>
+    @Query("Select* from produto_servico where descricao like '%'||:produto||'%' order by nome asc")
+    fun fluxoPesquisaProdutoDescricao(produto: String):Flow<List<EntidadeProdutoServico>>
+    @Query("Select* from produto_servico where preco=:produto order by nome asc")
+    fun fluxoPesquisaProdutoPreco(produto: Float):Flow<List<EntidadeProdutoServico>>
     @Query("Select * from produto_servico where id = :id")
     fun produtoPorId(id:Int):Flow<EntidadeProdutoServico>
     @Update

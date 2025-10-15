@@ -51,7 +51,9 @@ data class EntidadeEndereco(@ColumnInfo("id")
                             @ColumnInfo(name = "rua")
                             val rua:String,
                             @ColumnInfo(name = "numero")
-                            val numero:String)
+                            val numero:String,
+                            @ColumnInfo(name = "cep")
+                            val cep:String )
 
 
 data class JuncaoClineteTelefoneEndereco(

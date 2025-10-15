@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.safeGesturesPadding
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.componetesMain.BaraLateral
 import com.example.meunegociomeunegocio.componetesMain.BarraInferior
 import com.example.meunegociomeunegocio.navegacao.Navigraf
@@ -58,7 +60,9 @@ class MainActivity : ComponentActivity() {
                     val mainCorotineScope = rememberCoroutineScope()
                     val mainViewModel: ViewModelMain= viewModel()
             PermanentNavigationDrawer(drawerContent = {
-              BaraLateral(windowSizeClass)
+              BaraLateral(windowSizeClass,{
+                  mainCorotineScope.launch { navHostController.navigate(it) }
+              })
             }, modifier = Modifier.fillMaxSize().safeDrawingPadding()
 
                  ) {
@@ -68,7 +72,9 @@ class MainActivity : ComponentActivity() {
                                                     Log.d("MainActivity","acaoDeNavegacao")
                                                     mainCorotineScope.launch { navHostController.navigate(it) }},
                                                 vm = mainViewModel
-                    ) }){
+                    ) },
+                    floatingActionButton = {if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND))
+                                            FloatingActionButton(onClick = {}){} }){
                     Navigraf(navController = navHostController,
                         windowSize=windowSizeClass,
                         modifier = Modifier.fillMaxSize())

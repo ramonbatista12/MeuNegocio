@@ -5,9 +5,12 @@ import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+
 @HiltViewModel
 class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio) : ViewModel() {
     val produtos = repositorio.fluxoProdutoServico()
+    val fluxoDePesquisa= MutableStateFlow<PesquiProduto?>(null)
     suspend fun salvarProduto(produto: ProdutoServico){
         repositorio.inserirProdutoServico(produto)
 
@@ -20,3 +23,5 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
     }
 
 }
+
+data class PesquiProduto(val prod: String)

@@ -3,6 +3,7 @@ package com.example.meunegociomeunegocio.apresentacaoDeClientes
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -21,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,24 +37,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
+import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
+import com.example.meunegociomeunegocio.viewModel.Pesquisa
+import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaDeClientes(modifier: Modifier= Modifier,vm:ViewModelCliente){
+    val coroutineScope= rememberCoroutineScope()
     LaunchedEffect(Unit) {
         Log.d("ListaDeClientes","LaunchedEffect")
     }
+    val estadoBaraDePesquisa =remember { mutableStateOf(false) }
     val fluxoDeClientes=vm.fluxoDeCliente.collectAsState(initial = emptyList())
-    LazyColumn(modifier=modifier) {
-        items(fluxoDeClientes.value) {
-            ItemsDeClientes(it)
+    Column(modifier=modifier) {
+        BaraDePesquisaClientes(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
+        LazyColumn(modifier= Modifier) {
+            items(fluxoDeClientes.value) {
+                ItemsDeClientes(it, acao = {coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
+            }
         }
     }
+
 }
 
 @Composable
-private fun ItemsDeClientes(cli: Cliente){
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 3.dp)) {
+private fun ItemsDeClientes(cli: Cliente,acao:(Int)-> Unit){
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 3.dp).clickable(onClick = {acao(cli.id)})) {
+
      Row(modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp), verticalAlignment = Alignment.CenterVertically) {
         CirculoDeInicias(nome = cli.nome,cli.id)
         Spacer(Modifier.padding(10.dp))
@@ -63,6 +85,39 @@ private fun ItemsDeClientes(cli: Cliente){
 
     }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCliente){
+    val coroutineScope =rememberCoroutineScope()
+    val estadoDaBara= remember { mutableStateOf(false) }
+    val texto =remember { mutableStateOf("") }
+    val pesquisa =vm.fluxoDePesquisa.collectAsState(emptyList())
+    SearchBar(modifier = modifier,
+              inputField = { SearchBarDefaults.InputField(query = texto.value,
+                                                          onQueryChange = {texto.value=it
+                                                              vm.mudarPesquisa(
+                                                                  Pesquisa(texto.value))
+                                                                          },
+                                                          onSearch = {
+                                                              vm.mudarPesquisa(
+                                                                  Pesquisa(texto.value))
+                                                          },
+                                                          expanded = estadoDaBara.value,
+                                                          onExpandedChange = {estadoDaBara.value=it},
+                                                          placeholder = {Text("Pesquisar")},
+                                                          leadingIcon ={ Icon(Icons.Default.Search,null) },
+                                                          trailingIcon = {Icon(Icons.Default.Close,null,
+                                                              Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+              expanded = estadoDaBara.value,
+              onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+                   LazyColumn {
+                        items(items = pesquisa.value) {
+                            ItemsDeClientes(it.cliente,{coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
+                        }
+                   }
+                  }
+
+}
 
 
 @Composable

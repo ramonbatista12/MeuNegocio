@@ -25,11 +25,30 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
                                          bairro = it.bairro,
                                          rua = it.rua,
                                          complemento = it.complemeto,
-                                         numero = it.numero)
+                                         numero = it.numero,
+                                         cep = it.cep)
                             },
                             telefones = it.telefones.map {
                                  Telefone(it.id, idCli = it.idCli ,numero = it.numero,ddd=it.ddd)
                             })
+    }
+    fun pesquisaClientes(cliente: String)=dao.pesquisaCliente(cliente).map {
+        it.map {
+            DadosDeClientes(Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj),
+                enderecos =  it.enderecos.map {
+                    Endereco(id=it.id,
+                        cidade = it.cidade,
+                        idCli = it.idCli ,
+                        estado = it.estado,
+                        bairro = it.bairro,
+                        rua = it.rua,
+                        complemento = it.complemeto,
+                        numero = it.numero,
+                        cep = it.cep)
+                },
+                telefones = it.telefones.map {
+                    Telefone(it.id, idCli = it.idCli ,numero = it.numero,ddd=it.ddd)
+                })}
     }
     fun fluxoProdutoServico(): Flow<List<ProdutoServico>> = dao.fluxoProdutoServico().map { it.map { ProdutoServico(it.id,it.servico,it.nome,it.descrisao,it.preco,it.atiovo)  } }
     fun fluxoRequisicao()=dao.fluxoRequisicao()
