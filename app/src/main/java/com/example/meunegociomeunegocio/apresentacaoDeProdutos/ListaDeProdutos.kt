@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
+import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.viewModel.Pesquisa
@@ -65,7 +66,7 @@ fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
     LazyColumn {
         stickyHeader{
-            Cabesalho()
+            Cabesalho(windowSize)
         }
         items(items = listaDeProdutos.value){
             ItemProduto(windowSize=windowSize, produto = it)
@@ -73,6 +74,25 @@ fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize
 
     }
 }
+
+
+}
+
+@Composable
+fun ListaDeProdutos(modifier: Modifier=Modifier, listaDeProdutos: List<ProdutoRequisitado>, windowSize: WindowSizeClass){
+
+    Column(modifier = modifier.padding(horizontal = 5.dp)) {
+
+        LazyColumn {
+            stickyHeader{
+                CabesalhoProdutoSolicitado(windowSize)
+            }
+            items(items = listaDeProdutos){
+                ItemProdutoRequisitado(windowSize=windowSize, produto = it)
+            }
+
+        }
+    }
 
 
 }
@@ -128,12 +148,17 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
 
 
             Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
-                Text(produto.nome, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                when{
+                    windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)|| windowSize.isWidthAtLeastBreakpoint(
+                        WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->Text(produto.nome, maxLines = 2,modifier=Modifier.width(150.dp), overflow = TextOverflow.Ellipsis)
+                    else->Text(produto.nome, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                }
+
                 Spacer(Modifier.padding(10.dp))
                 Text(produto.preco.toString(), Modifier.width(70.dp))
                 Spacer(Modifier.padding(10.dp))
                 if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)||windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
-                    Text(produto.descrisao, maxLines = 1, modifier = Modifier.fillMaxWidth().padding(end = 90.dp), overflow = TextOverflow.Ellipsis)
+                    Text(produto.descrisao, maxLines = 2, modifier = Modifier.fillMaxWidth().padding(end = 90.dp), overflow = TextOverflow.Ellipsis)
                 else
                     Text(produto.descrisao, maxLines = 1, modifier = Modifier.width(90.dp), overflow = TextOverflow.Ellipsis)
 
@@ -167,12 +192,70 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
     }
 }
 
+
 @Composable
-private fun Cabesalho(){
+private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifier=Modifier,
+                        produto: ProdutoRequisitado ){
+
+    val expandidido = remember{mutableStateOf(false)}
+    LaunchedEffect(windowSize) {
+        Log.d("teste","teste windowSize clas mudo")
+        if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND))
+            Log.d("texte","window size class medio")
+        if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+            Log.d("texte","window size class expandido")
+    }
+
+    Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+        Box(modifier = Modifier.fillMaxSize()){
+
+
+            Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
+                when{
+                    windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)|| windowSize.isWidthAtLeastBreakpoint(
+                        WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(150.dp), overflow = TextOverflow.Ellipsis)
+                    else->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                }
+
+                Spacer(Modifier.padding(10.dp))
+                Text(produto.preco.toString(), Modifier.width(70.dp))
+                Spacer(Modifier.padding(10.dp))
+                Text(produto.qnt.toString(), Modifier.width(50.dp))
+                Spacer(Modifier.padding(10.dp))
+                Text(produto.total.toString(), Modifier.width(70.dp))
+
+
+            }
+            FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
+                IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
+                    Icon(Icons.Outlined.Create,modifier= Modifier.size(20.dp),contentDescription = "")
+                }
+
+                IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
+                    Icon(Icons.Outlined.Delete,modifier= Modifier.size(20.dp), contentDescription = "")
+                }
+
+            }
+
+            HorizontalDivider(Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun Cabesalho(windowSizeClass: WindowSizeClass){
     OutlinedCard (modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
             Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
-                Text("Produto", modifier = Modifier.width(70.dp))
+                when{
+                    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) || windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) ->{
+                        Text("Produto", modifier = Modifier.width(150.dp))
+
+                    }
+                    else->Text("Produto", modifier = Modifier.width(70.dp))
+                }
+
                 Spacer(Modifier.padding(10.dp))
                 Text("Preco", modifier = Modifier.width(70.dp))
                 Spacer(Modifier.padding(10.dp))
@@ -184,4 +267,28 @@ private fun Cabesalho(){
     }
 }
 
+@Composable
+private fun CabesalhoProdutoSolicitado(windowSizeClass: WindowSizeClass){
+    OutlinedCard (modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
+            Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
+                when{
+                    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) || windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) ->{
+                        Text("Produto", modifier = Modifier.width(150.dp))
 
+                    }
+                    else->Text("Produto", modifier = Modifier.width(70.dp))
+                }
+
+                Spacer(Modifier.padding(10.dp))
+                Text("Preco", modifier = Modifier.width(70.dp))
+                Spacer(Modifier.padding(10.dp))
+                Text("qnt", modifier = Modifier.width(70.dp))
+                Spacer(Modifier.padding(10.dp))
+                Text("total")
+
+
+            }
+        }
+    }
+}

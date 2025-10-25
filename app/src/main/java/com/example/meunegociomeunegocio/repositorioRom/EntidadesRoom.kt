@@ -118,6 +118,14 @@ data class juncaoRequesicaoEstadoClinete(@Embedded val requisicao: EntidadeRequi
 data class JuncaoRequesicaoCliente(@Embedded val requisicao: EntidadeRequisicao,
                                    @Relation(parentColumn = "id_cli", entityColumn = "id") val cliente:EntidadeClientes)
 
+data class ProdutoSolicitado(@ColumnInfo(name = "id")val id:Int,
+                             @ColumnInfo(name = "id_prd") val idPrd:Int,
+                             @ColumnInfo(name = "nome") val nomePrd:String,
+                             @ColumnInfo(name = "quantidade") val qnt:Int,
+                             @ColumnInfo(name = "preco")val preco:Float,
+                             @ColumnInfo(name = "total")val total:Float,
+                             @ColumnInfo(name = "produto_servico") val servico:Boolean)
+
 @Entity("requisicao_produto_servico",
          foreignKeys = [ForeignKey(entity = EntidadeRequisicao::class,parentColumns = ["id"],childColumns = ["id_req"]),
                         ForeignKey(entity = EntidadeProdutoServico::class,parentColumns = ["id"],childColumns = ["id_prd"] )],
@@ -129,11 +137,43 @@ data class EntidadeRequesicaoProduto(@ColumnInfo(name = "id")
                                      @ColumnInfo("id_req")
                                      val idReq:Int,
                                      @ColumnInfo(name = "id_prd")
-                                     val idProd:Int)
+                                     val idProd:Int,
+                                     @ColumnInfo(name="quantidade")
+                                     val qnr:Int )
 
 data class JuncaoRequesicaoProduto(@Embedded val requisicao: EntidadeRequisicao,
                                    @Relation(parentColumn = "id", entityColumn = "id", associateBy = Junction(EntidadeRequesicaoProduto::class)) val produtos:List<EntidadeProdutoServico>)
 
+
+data class JuncaoRequisicaoCompleta(
+    @Embedded val requisicao: EntidadeRequisicao,
+
+    @Relation(
+        parentColumn = "id_est",
+        entityColumn = "id"
+    )
+    val estado: EntidadeEstado,
+
+    @Relation(
+        parentColumn = "id_cli",
+        entityColumn = "id"
+    )
+    val cliente: EntidadeClientes,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = EntidadeRequesicaoProduto::class,
+            parentColumn = "id_req",
+            entityColumn = "id_prd"
+        )
+    )
+    val produtos: List<EntidadeProdutoServico>
+)
+
+data class  JuncaoRequisicaoClienteEstadoProduto(@Relation(parentColumn ="id_req" , entityColumn = "id") val juncaoRequisicaoClientne: JuncaoRequisicaoClienteEstadoProduto,
+                                                 @Relation(parentColumn = "id_prd", entityColumn = "id", associateBy = Junction(EntidadeRequesicaoProduto::class)) val produtos:List<EntidadeProdutoServico>)
 
 @Entity(tableName = "logs_mudancas",
         foreignKeys = [ForeignKey(entity = EntidadeRequisicao::class, parentColumns = ["id"], childColumns = ["id_req"] ),
@@ -151,6 +191,7 @@ data class EntidadeLogsDeMudacaas(@ColumnInfo("id")
                                   val idEstNovo:Int,
                                   @ColumnInfo("data_mudanca")
                                   val dataMudanca:String)
+
 
 data class  JuncaoLogsMudancaEstadoNovo(@Embedded val logs: EntidadeLogsDeMudacaas,
                                     @Relation(parentColumn = "id_est_novo", entityColumn = "id") val estadoAntigo: EntidadeEstado)

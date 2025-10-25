@@ -56,10 +56,16 @@ interface Daos{
     suspend fun deletarProdutoServico(produto: EntidadeProdutoServico)
     // querys Requisicao
     @Query("Select * from requisicao")
-    fun fluxoRequisicao():Flow<List<EntidadeRequisicao>>
-    @Transaction
+    fun fluxoRequisicao():Flow<List<juncaoRequesicaoEstadoClinete>>
+   @Transaction
    @Query("select * from requisicao where id = :id")
    fun requisicaoPorId(id:Int):Flow<juncaoRequesicaoEstadoClinete?>
+    @Transaction
+   @Query("select rps.id as id,rps.id_prd,ps.nome,rps.quantidade,ps.produto_servico,ps.preco," +
+           " ps.preco*rps.quantidade as total  from " +
+          "requisicao_produto_servico as rps join produto_servico as ps on rps.id_prd=ps.id " +
+          " where rps.id_req=:id")
+   fun requisicaoProdutoPorId(id:Int):Flow<List<ProdutoSolicitado>>
    @Query("select * from requisicao where id_est = :id")
    fun requisicaoPorEstado(id:Int):Flow<JuncaoRequesicaoProduto?>
    @Update

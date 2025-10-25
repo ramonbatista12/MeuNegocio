@@ -13,7 +13,8 @@ sealed class DestinosDeNavegacao{
     object Clientes: DestinosDeNavegacao()
     @Serializable
     object Requisicoes: DestinosDeNavegacao()
-
+    @Serializable
+    object AdicaoDeCleintes: DestinosDeNavegacao()
     @Serializable
     /**
      * descreve os dialogogos gerenciados por Navigra

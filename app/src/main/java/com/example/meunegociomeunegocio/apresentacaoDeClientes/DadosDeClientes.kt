@@ -211,7 +211,7 @@ private fun Endereco(endr: Endereco ){
     Card(modifier = Modifier.fillMaxSize().padding(5.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
      Box(modifier = Modifier.fillMaxWidth()){
         Column(Modifier.padding(bottom = 5.dp, end = 70.dp).align(Alignment.CenterStart)) {
-         Text("Rua : ${endr.rua}  ${endr.numero}")
+         Text("Rua : ${endr.rua}  N: ${endr.numero}")
          Text("cep : ${endr.cep}")
          Text("${endr.bairro}-${endr.estado}-${endr.cidade}", maxLines = 3)}
          Row(modifier = Modifier.align(Alignment.CenterEnd)) {

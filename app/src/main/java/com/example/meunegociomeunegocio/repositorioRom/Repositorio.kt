@@ -1,6 +1,5 @@
 package com.example.meunegociomeunegocio.repositorioRom
 
-import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,13 +50,33 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
                 })}
     }
     fun fluxoProdutoServico(): Flow<List<ProdutoServico>> = dao.fluxoProdutoServico().map { it.map { ProdutoServico(it.id,it.servico,it.nome,it.descrisao,it.preco,it.atiovo)  } }
-    fun fluxoRequisicao()=dao.fluxoRequisicao()
-    fun fluxoHistoricoDeMudancas(id:Int)=dao.HistoricoDeMudancaPorRequisicao(id).map { it.map {  Mudanca(it.logs.id,
+    fun fluxoRequisicao(): Flow<List<DadosDaRequisicao>> = dao.fluxoRequisicao().map {
+        it.map{
+            DadosDaRequisicao(requisicao = Requisicao(it.requisicao.id,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc ,obs = it.requisicao.obs),
+                               estado = Estado(it.estado.id,it.estado.descricao),
+                               cliente = Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj))
+
+        }
+    }
+    fun fluxoHistoricoDeMudancas(id:Int)=dao.HistoricoDeMudancaPorRequisicao(id).map { it.map {  Mudanca(it.logs.id,it.logs.dataMudanca,
                                                                         it.logs.idReq,
                                                                         if(it.estadoAntigo == null) null else Estado(it.estadoAntigo.id, descricao = it.estadoAntigo.descricao),
                                                                         Estado(it.estadoNovo.id, descricao = it.estadoNovo.descricao)) }}
-    fun requisicaoPorId(id:Int)=dao.requisicaoPorId(id).map {  }
-    fun fluxoRequisicaoPorEstado(id:Int)=dao.requisicaoPorEstado(id)
+    fun requisicaoPorId(id:Int)=dao.requisicaoPorId(id).map {
+        if(it==null) null
+        else
+         DadosDaRequisicao(requisicao=Requisicao(it.requisicao.id ,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc,it.requisicao.obs),
+                          estado = Estado(it.estado.id,it.estado.descricao),
+                          cliente =  Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj)  )
+
+
+    }
+    fun produtoRequisitado(idReq:Int)=dao.requisicaoProdutoPorId(idReq).map {
+        it.map {
+            ProdutoRequisitado(id = it.id, idProd = it.idPrd, nomePrd = it.nomePrd, qnt = it.qnt, preco = it.preco, total = it.total, produtoServico = it.servico)
+        }
+    }
+    fun fluxoRequisicaoPorEstado(id:Int)=dao.requisicaoPorEstado(id).map {  }
     fun fluxoDeEstados()=dao.fluxoDeEstados()
     // acoes em clientes
     suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.launch {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}

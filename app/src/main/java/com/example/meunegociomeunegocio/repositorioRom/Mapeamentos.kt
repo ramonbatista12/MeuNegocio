@@ -10,4 +10,14 @@ data class ProdutoServico(val id: Int, val servico: Boolean, val nome: String, v
 data class DadosDaRequisicao(val requisicao: Requisicao, val estado: Estado, val cliente: Cliente)
 data class EstadoDaRequisicao(val id: Int, val estadoAntigo: Estado?, val estadoNovo: Estado )
 data class ProdutoProRequisicao(val Requisicao: Requisicao, val produtos: List<ProdutoServico>)
-data class Mudanca(val id: Int, val idReq: Int, val idEstAntigo: Estado?, val idEstNovo: Estado)
+data class Mudanca(val id: Int, val data: String, val idReq: Int, val idEstAntigo: Estado?, val idEstNovo: Estado)
+data class RequisicaoEProdutosRequeridos(val dadosDaRequisicao: DadosDaRequisicao,val produtos: List<ProdutoServico>)
+data class ProdutoRequisitado(val id: Int, val idProd:Int, val nomePrd: String, val qnt: Int, val preco: Float,val total:Float ,val produtoServico: Boolean)
+sealed class EstadoRequisicao(val id: Int, val descricao: String){
+    object Pendente: EstadoRequisicao(3,"Pendente")
+    object Cancelado: EstadoRequisicao(1,"Cancelado")
+    object Confirmado: EstadoRequisicao(2,"Confirmado")
+    object Entregue: EstadoRequisicao(4,"Entregue")
+}
+
+

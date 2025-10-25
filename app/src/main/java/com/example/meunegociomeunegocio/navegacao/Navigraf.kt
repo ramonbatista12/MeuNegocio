@@ -11,6 +11,7 @@ import androidx.navigation.compose.dialog
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ApresentacaoDeClientes
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ApresentacaoProdutos
+import com.example.meunegociomeunegocio.apresentacaoRequisicoes.ApresentacaoDeRequisicao
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -19,7 +20,7 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
     NavHost(navController=navController, startDestination = DestinosDeNavegacao.Requisicoes,
             modifier = modifier){
         composable<DestinosDeNavegacao.Requisicoes>{
-
+            ApresentacaoDeRequisicao(modifier = modifier,windowSize = windowSize,hiltViewModel())
         }
 
         composable<DestinosDeNavegacao.Clientes> {
