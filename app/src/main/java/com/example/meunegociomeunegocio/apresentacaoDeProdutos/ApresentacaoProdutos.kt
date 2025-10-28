@@ -10,9 +10,7 @@ fun ApresentacaoProdutos(modifier: Modifier=Modifier,
                          windowSize: WindowSizeClass,
                          vm: ViewModelProdutos ){
 
-
-
-                   ListaDeProdutos(modifier,vm,windowSize)
+     ListaDeProdutosRequisitados(modifier,vm,windowSize)
 
 
            }

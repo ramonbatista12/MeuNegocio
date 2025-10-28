@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio) : ViewModel() {
     val produtos = repositorio.fluxoProdutoServico()
     val fluxoDePesquisa= MutableStateFlow<PesquiProduto?>(null)
+    val mostraProduto = MutableStateFlow(false)
+    val idProduto = MutableStateFlow(0)
     suspend fun salvarProduto(produto: ProdutoServico){
         repositorio.inserirProdutoServico(produto)
 

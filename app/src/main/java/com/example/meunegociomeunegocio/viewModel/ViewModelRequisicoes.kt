@@ -3,21 +3,58 @@ package com.example.meunegociomeunegocio.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewModel() {
     private val Tag="ViewModelRequisicoes"
     private val coroutineScope=viewModelScope
-    val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao();
+    val fluxoDeId= MutableStateFlow(0)
+    val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao()
     val telaInternasRequisicoes= MutableStateFlow<TelasInternasDeRequisicoes>(TelasInternasDeRequisicoes.Lista)
     val estadoListaHistorico= MutableStateFlow<ListaHistorico>(ListaHistorico.Lista)
-    val fluxoDadosDeRequisicao =repositorio.requisicaoPorId(1)
-    val fluxoHistoricoDeMudancas=repositorio.fluxoHistoricoDeMudancas(1)
-    val fluxoProdutosRequisitados=repositorio.produtoRequisitado(1)
+    val fluxoDadosDeRequisicao = fluxoDeId.flatMapLatest{
+        repositorio.requisicaoPorId(it).map {
+            if(it==null)
+                EstadosDeLoad.Empty
+            else
+                EstadosDeLoad.Caregado(it)
+        }
+    }
+    val fluxoHistoricoDeMudancas= fluxoDeId.flatMapLatest {
+
+        repositorio.fluxoHistoricoDeMudancas(it).map {
+            if(it==null||it.isEmpty())
+                EstadosDeLoad.Empty
+            else
+            EstadosDeLoad.Caregado(it)
+        }
+    }
+
+    val fluxoProdutosRequisitados= fluxoDeId.flatMapLatest{
+        repositorio.produtoRequisitado(it).map {
+            if(it==null||it.isEmpty())
+                EstadosDeLoad.Empty
+            else
+                EstadosDeLoad.Caregado(it)
+        }
+    }
+
+    val valorTotalRequisicao= fluxoDeId.flatMapLatest{
+        repositorio.custoTotalPorRequisicao(it).map{
+            if(it==null)
+               EstadosDeLoad.Empty
+            else
+                EstadosDeLoad.Caregado(it)
+
+
+        }}
     fun mostrarRequisicao(id:Int){
 
         coroutineScope.launch {
@@ -39,6 +76,11 @@ class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewMod
     fun verHistorico(){
         coroutineScope.launch {
             estadoListaHistorico.emit(ListaHistorico.Historico)
+        }
+    }
+    fun mudarId(id:Int){
+        coroutineScope.launch {
+            fluxoDeId.emit(id)
         }
     }
 }

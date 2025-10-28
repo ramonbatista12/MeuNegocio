@@ -82,9 +82,11 @@ interface Daos{
    @Query("select*from logs_mudancas where id_est_novo=:idEstado")
    fun logsMudancaPorEstado(idEstado:Int):Flow<JuncaoLogsMudancaEstadoNovo?>
     @Transaction
-    @Query("select*from logs_mudancas where id_req=:idRequesicao")
+    @Query("select*from logs_mudancas where id_req=:idRequesicao order by data_mudanca desc")
     fun HistoricoDeMudancaPorRequisicao(idRequesicao:Int):Flow<List<JuncaoLogsMudancaEstadoNovoEstadoAntigo>>
-
+    @Transaction
+    @Query("select sum(total ) from (select rps.quantidade*ps.preco as total from requisicao_produto_servico rps join produto_servico ps on rps.id_prd=ps.id where id_req=:idRequesicao )")
+    fun  valorTotalRequisitado(idRequesicao: Int):Flow<Double?>
     // queryes estados
    @Query("select*from estados")
    fun fluxoDeEstados():Flow<List<EntidadeEstado>>

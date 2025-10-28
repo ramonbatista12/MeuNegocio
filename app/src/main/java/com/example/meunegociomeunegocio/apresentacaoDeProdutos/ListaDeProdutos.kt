@@ -49,18 +49,17 @@ import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
-import com.example.meunegociomeunegocio.viewModel.Pesquisa
-import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
-import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
-import kotlinx.coroutines.launch
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
 
 
 @Composable
-fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize: WindowSizeClass){
+fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
     val listaDeProdutos=vm.produtos.collectAsState(initial = emptyList())
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
@@ -79,20 +78,28 @@ fun ListaDeProdutos(modifier: Modifier=Modifier,vm: ViewModelProdutos,windowSize
 }
 
 @Composable
-fun ListaDeProdutos(modifier: Modifier=Modifier, listaDeProdutos: List<ProdutoRequisitado>, windowSize: WindowSizeClass){
+fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequisicoes, windowSize: WindowSizeClass){
+    val produtos =vm.fluxoProdutosRequisitados.collectAsStateWithLifecycle(EstadosDeLoad.load)
+     when(produtos.value){
+         is EstadosDeLoad.Empty -> {}
+         is EstadosDeLoad.Caregado<*> -> {
+             val produtos =produtos.value as EstadosDeLoad.Caregado<List<ProdutoRequisitado>>
+             Column(modifier = modifier.padding(horizontal = 5.dp)) {
 
-    Column(modifier = modifier.padding(horizontal = 5.dp)) {
+                 LazyColumn {
+                     stickyHeader{
+                         CabesalhoProdutoSolicitado(windowSize)
+                     }
+                     items(items = produtos.obj){
+                         ItemProdutoRequisitado(windowSize=windowSize, produto = it)
+                     }
 
-        LazyColumn {
-            stickyHeader{
-                CabesalhoProdutoSolicitado(windowSize)
-            }
-            items(items = listaDeProdutos){
-                ItemProdutoRequisitado(windowSize=windowSize, produto = it)
-            }
+                 }
+             }}
+         is EstadosDeLoad.load -> {}
+         else -> {}
+     }
 
-        }
-    }
 
 
 }

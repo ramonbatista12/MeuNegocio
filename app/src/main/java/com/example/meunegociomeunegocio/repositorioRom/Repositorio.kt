@@ -62,6 +62,7 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
                                                                         it.logs.idReq,
                                                                         if(it.estadoAntigo == null) null else Estado(it.estadoAntigo.id, descricao = it.estadoAntigo.descricao),
                                                                         Estado(it.estadoNovo.id, descricao = it.estadoNovo.descricao)) }}
+    fun custoTotalPorRequisicao(id:Int)=dao.valorTotalRequisitado(id)
     fun requisicaoPorId(id:Int)=dao.requisicaoPorId(id).map {
         if(it==null) null
         else
@@ -76,7 +77,10 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
             ProdutoRequisitado(id = it.id, idProd = it.idPrd, nomePrd = it.nomePrd, qnt = it.qnt, preco = it.preco, total = it.total, produtoServico = it.servico)
         }
     }
-    fun fluxoRequisicaoPorEstado(id:Int)=dao.requisicaoPorEstado(id).map {  }
+    fun fluxoPodutoPorID(id:Int)=dao.produtoPorId(id).map {
+        if(it==null)null
+        else
+        ProdutoServico(id=it.id, servico = it.servico,nome=it.nome,descrisao = it.descrisao, preco = it.preco,ativo=it.atiovo)}
     fun fluxoDeEstados()=dao.fluxoDeEstados()
     // acoes em clientes
     suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.launch {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}
