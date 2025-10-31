@@ -6,6 +6,7 @@ import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -16,7 +17,11 @@ class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewMod
     private val Tag="ViewModelRequisicoes"
     private val coroutineScope=viewModelScope
     val fluxoDeId= MutableStateFlow(0)
-    val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao()
+    val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao().map {
+        delay(4000)
+        if(it==null ||it.isEmpty()) EstadosDeLoad.Empty
+        else EstadosDeLoad.Caregado(it)
+    }
     val telaInternasRequisicoes= MutableStateFlow<TelasInternasDeRequisicoes>(TelasInternasDeRequisicoes.Lista)
     val estadoListaHistorico= MutableStateFlow<ListaHistorico>(ListaHistorico.Lista)
     val fluxoDadosDeRequisicao = fluxoDeId.flatMapLatest{

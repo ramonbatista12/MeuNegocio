@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,10 +32,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.loads.LoadClientes
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
 import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import com.example.meunegociomeunegocio.viewModel.Pesquisa
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
@@ -52,13 +54,32 @@ fun ListaDeClientes(modifier: Modifier= Modifier,vm:ViewModelCliente){
         Log.d("ListaDeClientes","LaunchedEffect")
     }
     val estadoBaraDePesquisa =remember { mutableStateOf(false) }
-    val fluxoDeClientes=vm.fluxoDeCliente.collectAsState(initial = emptyList())
+    val estadoDeLoad=vm.fluxoDeCliente.collectAsState(EstadosDeLoad.load)
     Column(modifier=modifier) {
         BaraDePesquisaClientes(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
         LazyColumn(modifier= Modifier) {
-            items(fluxoDeClientes.value) {
-                ItemsDeClientes(it, acao = {coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
+            when(estadoDeLoad.value){
+                is EstadosDeLoad.load -> {
+                    items(count = 5) {
+                        LoadClientes()
+                    }
+                }
+                is EstadosDeLoad.Empty -> {
+                    item {
+                    Text("Nenhum cliente encontrado")
+
+                }}
+                is EstadosDeLoad.Erro -> {}
+                is EstadosDeLoad.Caregado<*> -> {
+                    val lista=estadoDeLoad.value as EstadosDeLoad.Caregado<List<Cliente>>
+                    items(lista.obj) {
+                        ItemsDeClientes(it, acao = {coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
+                    }
+                }
             }
+
+
+
         }
     }
 
@@ -105,8 +126,8 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCl
                                                           expanded = estadoDaBara.value,
                                                           onExpandedChange = {estadoDaBara.value=it},
                                                           placeholder = {Text("Pesquisar")},
-                                                          leadingIcon ={ Icon(Icons.Default.Search,null) },
-                                                          trailingIcon = {Icon(Icons.Default.Close,null,
+                                                          leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
+                                                          trailingIcon = {Icon(painterResource(R.drawable.baseline_delete_24),null,
                                                               Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
               expanded = estadoDaBara.value,
               onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){

@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import com.example.meunegociomeunegocio.R
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -22,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +78,7 @@ private fun BaraLateralLarguraMedia(windowSizeClass: WindowSizeClass,modifier: M
 
 @Composable
 private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao)->Unit,modifier: Modifier=Modifier){
+    val estadoDaBara=remember{mutableStateOf<DestinosDeNavegacao>(DestinosDeNavegacao.Requisicoes)}
     when{
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)->{
             LaunchedEffect(Unit) {
@@ -84,11 +86,21 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeN
             }
             Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
                 IconesDeDestino.listaDeIcones.forEach {
-                    ItemDeIconesDeDestino(destino = it,acao = acaoDeNavegacao)
+                    ItemDeIconesDeDestino(destino = it,acao ={ estadoDaBara.value=it
+                         acaoDeNavegacao(it)})
                 }
-                FloatingActionButton(onClick = {}
+                FloatingActionButton(onClick = {
+                     when(estadoDaBara.value){
+                         is DestinosDeNavegacao.Clientes -> {
+                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeCleintes)
+                         }
+                         is DestinosDeNavegacao.Produtos -> {}
+                         is DestinosDeNavegacao.Requisicoes -> {}
+                         else -> {}
+                     }
+                }
                 ) {
-                    Icon(Icons.Default.Add,null)
+                    Icon(painterResource(R.drawable.baseline_add_24),null)
 
                 }
             }

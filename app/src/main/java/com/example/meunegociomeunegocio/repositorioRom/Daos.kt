@@ -22,7 +22,7 @@ interface Daos{
     @Update
     suspend fun atualizarCliente(cliente: EntidadeClientes)
     @Insert
-    suspend fun inserirClientes(clientes: EntidadeClientes)
+    suspend fun inserirClientes(clientes: EntidadeClientes): Long
     @Delete
     suspend fun deletarCliente(cliente: EntidadeClientes)
     @Insert
@@ -47,7 +47,7 @@ interface Daos{
     @Query("Select* from produto_servico where preco=:produto order by nome asc")
     fun fluxoPesquisaProdutoPreco(produto: Float):Flow<List<EntidadeProdutoServico>>
     @Query("Select * from produto_servico where id = :id")
-    fun produtoPorId(id:Int):Flow<EntidadeProdutoServico>
+    fun produtoPorId(id:Int):Flow<EntidadeProdutoServico?>
     @Update
     suspend fun atualizarProdutoServico(produto: EntidadeProdutoServico)
     @Insert

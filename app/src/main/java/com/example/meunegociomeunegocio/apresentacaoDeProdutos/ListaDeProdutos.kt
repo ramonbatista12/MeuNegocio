@@ -22,13 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Create
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,30 +40,60 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
+import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
+public fun String.formatarPreco():String{
+    return String.format("%.2f",this.toDouble()).replace(".",",")
+}
 
+public fun String.formatData():String{
+    if(!this.matches(Regex("\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}"))) throw IllegalArgumentException("data invalaida${this} .Essa funcao valida e feita para reordenara o padaro yyyy-mm-dd hh:mm:ss para o padrao dd/mm/yyyy hh:mm:ss")
+    val split =this.split(" ")
+    val data =split[0].split("-")
+    val  dataFormatada ="${data[2]}/${data[1]}/${data[0]} ${split[1]}"
+    return "$dataFormatada "
+}
 
 @Composable
 fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
-    val listaDeProdutos=vm.produtos.collectAsState(initial = emptyList())
+    val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
     LazyColumn {
         stickyHeader{
             Cabesalho(windowSize)
         }
-        items(items = listaDeProdutos.value){
-            ItemProduto(windowSize=windowSize, produto = it)
+        when(estadosDeLoad.value){
+            is EstadosDeLoad.Empty -> {
+               }
+            is EstadosDeLoad.Erro->{}
+            is EstadosDeLoad.load -> {
+                items(count = 5) {
+                ItemDelLoadTabelas()
+
+            }}
+            is EstadosDeLoad.Caregado<*> -> {
+                val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+                items(items = lista.obj){
+                    ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostrarProduto(it)}, acaoFormatacao = {vm.formatarPreco(it)})
+                }
+            }
+
         }
+
+
+
 
     }
 }
@@ -91,7 +115,7 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequis
                          CabesalhoProdutoSolicitado(windowSize)
                      }
                      items(items = produtos.obj){
-                         ItemProdutoRequisitado(windowSize=windowSize, produto = it)
+                         ItemProdutoRequisitado(windowSize=windowSize, produto = it, acaoFormatacao = {  it.toString().formatarPreco()})
                      }
 
                  }
@@ -122,8 +146,8 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
             expanded = estadoDaBara.value,
             onExpandedChange = {estadoDaBara.value=it},
             placeholder = {Text("Pesquisar")},
-            leadingIcon ={ Icon(Icons.Default.Search,null) },
-            trailingIcon = {Icon(Icons.Default.Close,null,
+            leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
+            trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                 Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
         expanded = estadoDaBara.value,
         onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
@@ -138,7 +162,9 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
 
 @Composable
 private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier,
-                        produto: ProdutoServico ){
+                        produto: ProdutoServico ,
+                        acaoMostrarProduto:(id:Int)->Unit= {},
+                        acaoFormatacao:(preco:Double)->String={""}){
 
     val expandidido = remember{mutableStateOf(false)}
     LaunchedEffect(windowSize) {
@@ -149,7 +175,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
             Log.d("texte","window size class expandido")
     }
 
-    Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp),
+    Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp).clickable(onClick = { acaoMostrarProduto(produto.id)}),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.fillMaxSize()){
 
@@ -162,7 +188,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
                 }
 
                 Spacer(Modifier.padding(10.dp))
-                Text(produto.preco.toString(), Modifier.width(70.dp))
+                Text( acaoFormatacao(produto.preco.toDouble()), Modifier.width(70.dp))
                 Spacer(Modifier.padding(10.dp))
                 if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)||windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
                     Text(produto.descrisao, maxLines = 2, modifier = Modifier.fillMaxWidth().padding(end = 90.dp), overflow = TextOverflow.Ellipsis)
@@ -174,18 +200,18 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
             }
             FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
                 IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
-                    Icon(Icons.Outlined.Create,modifier= Modifier.size(20.dp),contentDescription = "")
+                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                 }
 
                 IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
-                    Icon(Icons.Outlined.Delete,modifier= Modifier.size(20.dp), contentDescription = "")
+                    Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                 }
-                IconButton(onClick = {expandidido.value=!expandidido.value}, modifier = Modifier.size(30.dp)) {
+              /*  IconButton(onClick = {expandidido.value=!expandidido.value}, modifier = Modifier.size(30.dp)) {
                     if(!expandidido.value)
                         Icon(Icons.Outlined.ArrowDropDown, contentDescription = "")
                     else
                         Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "", modifier = Modifier)
-                }
+                }*/
             }
             Column(Modifier.fillMaxWidth().align(Alignment.CenterStart).padding(top = 3.dp)){
                 AnimatedVisibility(visible = expandidido.value, Modifier){
@@ -202,7 +228,8 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
 
 @Composable
 private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifier=Modifier,
-                        produto: ProdutoRequisitado ){
+                        produto: ProdutoRequisitado ,
+                        acaoFormatacao: (Double) -> String){
 
     val expandidido = remember{mutableStateOf(false)}
     LaunchedEffect(windowSize) {
@@ -226,21 +253,21 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
                 }
 
                 Spacer(Modifier.padding(10.dp))
-                Text(produto.preco.toString(), Modifier.width(70.dp))
+                Text(produto.preco.toString().formatarPreco(), Modifier.width(70.dp))
                 Spacer(Modifier.padding(10.dp))
                 Text(produto.qnt.toString(), Modifier.width(50.dp))
                 Spacer(Modifier.padding(10.dp))
-                Text(produto.total.toString(), Modifier.width(70.dp))
+                Text(acaoFormatacao(produto.total.toDouble()), Modifier.width(70.dp))
 
 
             }
             FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
                 IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
-                    Icon(Icons.Outlined.Create,modifier= Modifier.size(20.dp),contentDescription = "")
+                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                 }
 
                 IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
-                    Icon(Icons.Outlined.Delete,modifier= Modifier.size(20.dp), contentDescription = "")
+                    Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                 }
 
             }

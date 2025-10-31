@@ -3,6 +3,7 @@ package com.example.meunegociomeunegocio.repositorioRom
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -83,13 +84,17 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
         ProdutoServico(id=it.id, servico = it.servico,nome=it.nome,descrisao = it.descrisao, preco = it.preco,ativo=it.atiovo)}
     fun fluxoDeEstados()=dao.fluxoDeEstados()
     // acoes em clientes
-    suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.launch {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}
+    suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.async {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}.await()
     suspend fun apagarCliente(clientes: Cliente)=coroutinesScope.launch { dao.deletarCliente(EntidadeClientes(clientes.id,clientes.nome,clientes.cpf,clientes.cnpj)) }
     suspend fun atuAlizarCliente(clientes: Cliente)=coroutinesScope.launch { dao.atualizarCliente( EntidadeClientes(clientes.id,clientes.nome,clientes.cpf,clientes.cnpj)) }
     //acoes em endereco
-    suspend fun inserirEndereco(endereco: EntidadeEndereco)=coroutinesScope.launch { dao.insertEndereco(endereco) }
-    suspend fun apagarEndereco(endereco: EntidadeEndereco)=coroutinesScope.launch { dao.apagarEndereco(endereco) }
-    suspend fun atualizarEndereco(endereco: EntidadeEndereco)=coroutinesScope.launch { dao.updateEndereco(endereco) }
+    suspend fun inserirEndereco(endereco: Endereco)=coroutinesScope.launch { dao.insertEndereco(EntidadeEndereco(endereco.id,endereco.idCli,endereco.cidade,endereco.estado,endereco.bairro,endereco.rua,endereco.complemento,endereco.numero,endereco.cep)) }
+    suspend fun apagarEndereco(endereco: Endereco)=coroutinesScope.launch { dao.apagarEndereco(EntidadeEndereco(endereco.id,endereco.idCli,endereco.cidade,endereco.estado,endereco.bairro,endereco.rua,endereco.complemento,endereco.numero,endereco.cep)) }
+    suspend fun atualizarEndereco(endereco: Endereco)=coroutinesScope.launch { dao.updateEndereco(EntidadeEndereco(endereco.id,endereco.idCli,endereco.cidade,endereco.estado,endereco.bairro,endereco.rua,endereco.complemento,endereco.numero,endereco.cep)) }
+    //acoes em Telefone
+    suspend fun atulizarTelefone(telefone: Telefone)=coroutinesScope.launch { dao.updateTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero))}
+    suspend fun inserirTelefone(telefone: Telefone)=coroutinesScope.launch { dao.apagarTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero))}
+    suspend fun apagarTelefone(telefone: Telefone)=coroutinesScope.launch { dao.apagarTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero)) }
     //acoes em produtos
     suspend fun inserirProdutoServico(produto: ProdutoServico)=coroutinesScope.launch { dao.inserirProdutoServico(EntidadeProdutoServico(produto.id,produto.servico,produto.nome,produto.descrisao,produto.preco,produto.ativo)) }
     suspend fun apagarProdutoServico(produto: ProdutoServico)=coroutinesScope.launch { dao.deletarProdutoServico(EntidadeProdutoServico(produto.id,produto.servico,produto.nome,produto.descrisao,produto.preco,produto.ativo))  }

@@ -15,11 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Create
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Card
+
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,6 +37,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutosRequisitados
+import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatData
+import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatarPreco
+import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
 import com.example.meunegociomeunegocio.repositorioRom.Mudanca
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
@@ -50,21 +50,23 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
 @Composable
 fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
 
-    val lista =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(emptyList())
+
     if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
         ListaCompat(windowSizeClass = windowSizeClass, vm = vm,modifier)
-    else{}
+    else{
+        ListaExpandida(windowSizeClass = windowSizeClass, vm = vm,modifier)
+    }
 }
 
 
 @Composable
 private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
-    val lista =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(emptyList())
+
     val telaInterna=vm.telaInternasRequisicoes.collectAsStateWithLifecycle()
 
     when(telaInterna.value){
         is TelasInternasDeRequisicoes.Lista->{
-            Lista(modifier=modifier,lista = lista.value,windowSizeClass = windowSizeClass,acao = {
+            Lista(modifier=modifier,vm,windowSizeClass = windowSizeClass,acao = {
                 Log.d("listaconmpat","mudanado tela interna")
                 vm.mudarId(it)
                 vm.mostrarRequisicao(it) })}
@@ -74,17 +76,49 @@ private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoe
     }
 
 }
+
 @Composable
-private fun Lista(modifier:Modifier=Modifier,lista: List<DadosDaRequisicao>,windowSizeClass: WindowSizeClass,acao:(Int)->Unit){
+private fun  ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
+
+    val telaInterna=vm.telaInternasRequisicoes.collectAsStateWithLifecycle()
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Lista(modifier= Modifier.fillMaxWidth(0.4f),vm,windowSizeClass = windowSizeClass, acao = { vm.mudarId(it)
+                                                                            vm.mostrarRequisicao(it) })
+        VerticalDivider(Modifier.padding(horizontal = 10.dp))
+        ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
+
+    }
+}
+@Composable
+private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSizeClass: WindowSizeClass, acao:(Int)->Unit){
+    val estadosDeLoad =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(EstadosDeLoad.load)
     LazyColumn(modifier = modifier) {
-    stickyHeader {
-        CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+        stickyHeader {
+            CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+        }
+        when(estadosDeLoad.value){
+            is EstadosDeLoad.load -> {
+                items(count = 5) {
+                    ItemDelLoadTabelas()
+            }}
+            is EstadosDeLoad.Empty -> {}
+            is EstadosDeLoad.Caregado<*> -> {
+                val lista = estadosDeLoad.value as EstadosDeLoad.Caregado<List<DadosDaRequisicao>>
+                items(items = lista.obj) {
+                    ItemRwquisicao(it, windowSizeClass = windowSizeClass, acao = acao)
+                }
+            }
+                is EstadosDeLoad.Erro -> {}
+
+            }
+
+        }
+
+
+
     }
 
-    items(items = lista) {
-        ItemRwquisicao(it, windowSizeClass = windowSizeClass, acao = acao)
-    }
-}}
+
 
 @Composable
 private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass){
@@ -97,8 +131,9 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                 val requisicao =requisicao.value as EstadosDeLoad.Caregado<DadosDaRequisicao>
                 Column(modifier = modifier.fillMaxWidth().padding(bottom = 70.dp)) {
                 Box(modifier = Modifier.fillMaxWidth()){
+                    if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
                     IconButton({acaoDeVoultar()},modifier= Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Outlined.ArrowDropDown ,contentDescription = null,modifier=Modifier.size(25.dp))
+                    Icon(painterResource(R.drawable.baseline_arrow_drop_down_24),contentDescription = null,modifier=Modifier.size(25.dp))
                 }
                     NumeroDeRequisicoes(requisicao.obj.requisicao.id,modifier= Modifier.align(Alignment.Center))
                  IconButton(onClick = {},modifier= Modifier.align(Alignment.CenterEnd)) {
@@ -114,7 +149,7 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                 Custo(vm, modifier = Modifier.padding(bottom = 5.dp))
                 Estado(requisicao.obj.estado.descricao)
                 HorizontalDivider()
-                Row(modifier = Modifier.padding(vertical = 10.dp, horizontal = 5.dp)) {
+                Row(modifier = Modifier.padding(vertical = 10.dp, horizontal = 5.dp).align(Alignment.CenterHorizontally)) {
                     OutlinedButton({
                     }) {
                         Text("Cancelar")
@@ -197,7 +232,7 @@ private fun Custo(vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
         is EstadosDeLoad.Caregado<*> -> {
             val custo =custo.value as EstadosDeLoad.Caregado<Double>
             Row(modifier = modifier) {
-            Text("Total $ : "+custo.obj, Modifier.padding(5.dp))
+            Text("Total $ : "+custo.obj.toString().formatarPreco(), Modifier.padding(5.dp))
 
         }}
         else -> {}
@@ -255,16 +290,25 @@ private fun ListaDeEstados(vm: ViewModelRequisicoes){
 
 @Composable
 private fun ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes){
-    val lista =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(emptyList())
-    LazyColumn {
-        stickyHeader {
-            CabesalhoRequisicao(windowSizeClass = windowSizeClass)
-        }
+    val estadosDeLoad =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    when(estadosDeLoad.value){
+        is EstadosDeLoad.Empty -> {}
+        is EstadosDeLoad.Erro -> {}
+        is EstadosDeLoad.load -> {}
+        is EstadosDeLoad.Caregado<*> -> {
+            val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<DadosDaRequisicao>>
+            LazyColumn {
+                stickyHeader {
+                    CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+                }
 
-        items(items = lista.value) {
-            ItemRwquisicao(it, windowSizeClass = windowSizeClass)
+                items(items = lista.obj) {
+                    ItemRwquisicao(it, windowSizeClass = windowSizeClass)
+                }
+            }
         }
     }
+
 }
 
 @Composable
@@ -298,11 +342,11 @@ private fun ItemRwquisicao(dados: DadosDaRequisicao,windowSizeClass: WindowSizeC
             }
             FlowRow(Modifier.align(Alignment.CenterEnd )) {
                 IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
-                    Icon(Icons.Outlined.Create,modifier= Modifier.size(20.dp),contentDescription = "")
+                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                 }
 
                 IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
-                    Icon(Icons.Outlined.Delete,modifier= Modifier.size(20.dp), contentDescription = "")
+                    Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                 }
 
             }
@@ -366,7 +410,7 @@ private fun ItemHistorico(dados: Mudanca){
 
             Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(Alignment.CenterStart )) {
 
-                Text(dados.data, maxLines = 2,modifier=Modifier.width(250.dp), overflow = TextOverflow.Ellipsis)
+                Text(dados.data.formatData(), maxLines = 2,modifier=Modifier.width(250.dp), overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.padding(10.dp))
                 Text(dados.idEstNovo.descricao, maxLines = 1, modifier = Modifier.width(90.dp), overflow = TextOverflow.Ellipsis)
 

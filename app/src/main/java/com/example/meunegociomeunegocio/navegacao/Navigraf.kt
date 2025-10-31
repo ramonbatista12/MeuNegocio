@@ -12,6 +12,8 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ApresentacaoDeClientes
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ApresentacaoProdutos
 import com.example.meunegociomeunegocio.apresentacaoRequisicoes.ApresentacaoDeRequisicao
+import com.example.meunegociomeunegocio.cadastroDeClientes.CadastroDeClientes
+import com.example.meunegociomeunegocio.repositorioRom.EstadoRequisicao
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -28,6 +30,9 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
         }
         composable<DestinosDeNavegacao.Produtos> {
             ApresentacaoProdutos(vm = hiltViewModel(), modifier = modifier,windowSize = windowSize)
+        }
+        composable<DestinosDeNavegacao.AdicaoDeCleintes>{
+            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel())
         }
         dialog<DestinosDeNavegacao.Dialogos.NovoCliente>{
 

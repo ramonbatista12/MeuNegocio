@@ -14,11 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -81,7 +78,7 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
     Column (modifier=Modifier.padding(all = 5.dp)){
              IconButton(onClick = {coroutineScope.launch {vm.mudarTelaVisualizada(
                  TelasInternasDeClientes.ListaDeClientes)  }},modifier.padding(5.dp)) {
-                 Icon( Icons.Default.ArrowBack , contentDescription = null)
+                 Icon(painterResource( R.drawable.baseline_arrow_back_24 ), contentDescription = null)
 
              }
              Iniciais(dadosDeClientes.cliente.nome,
@@ -219,10 +216,10 @@ private fun Endereco(endr: Endereco ){
                  Icon(painterResource(R.drawable.endereco),null)
              }
              IconButton(onClick = {},Modifier.size(30.dp)) {
-                 Icon(Icons.Default.Create,null)
+                 Icon(painterResource(R.drawable.create_24),null)
              }
              IconButton(onClick = {},Modifier.size(30.dp)) {
-                 Icon(Icons.Default.Delete,null)
+                 Icon(painterResource(R.drawable.baseline_delete_24),null)
              }
          }
          HorizontalDivider()
@@ -253,10 +250,10 @@ private fun Telefone(telefone: Telefone
                     Icon(painterResource(R.drawable.telefone),null)
                 }
                 IconButton(onClick = {},Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Create,null)
+                    Icon(painterResource(R.drawable.create_24),null)
                 }
                 IconButton(onClick = {},Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Delete,null)
+                    Icon(painterResource(R.drawable.baseline_delete_24),null)
                 }
             }
             HorizontalDivider()

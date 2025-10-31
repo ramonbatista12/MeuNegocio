@@ -9,6 +9,7 @@ import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -23,7 +24,11 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
     val telaVisualizada= MutableStateFlow<TelasInternasDeClientes>(TelasInternasDeClientes.ListaDeClientes)
     val daosClioente= MutableStateFlow<TelasInternasDadosDeClientes>(TelasInternasDadosDeClientes.Telefone)
     val pesquisa= MutableStateFlow<Pesquisa?>(null)
-    val fluxoDeCliente =repositorio.fluxoDeClientes()
+    val fluxoDeCliente =repositorio.fluxoDeClientes().map {
+        delay(4000)
+        if(it==null||it.size==0) EstadosDeLoad.Empty
+        else EstadosDeLoad.Caregado(it)
+    }
     val fluxoDeDadosDeClientesPainelExpandido=telaVisualizada.flatMapLatest{
         when(it){
             is TelasInternasDeClientes.DadosDoCliente -> {

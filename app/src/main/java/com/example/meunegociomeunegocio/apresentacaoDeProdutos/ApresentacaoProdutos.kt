@@ -1,9 +1,25 @@
 package com.example.meunegociomeunegocio.apresentacaoDeProdutos
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
+import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 
 @Composable
 fun ApresentacaoProdutos(modifier: Modifier=Modifier,
@@ -11,8 +27,41 @@ fun ApresentacaoProdutos(modifier: Modifier=Modifier,
                          vm: ViewModelProdutos ){
 
      ListaDeProdutosRequisitados(modifier,vm,windowSize)
-
+     MostrarProduto(vm)
 
            }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MostrarProduto(vm: ViewModelProdutos){
+    val mostrarProduto =vm.mostraProduto.collectAsStateWithLifecycle()
+    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    val scrolState = rememberScrollState()
+    if(mostrarProduto.value){
+        ModalBottomSheet(onDismissRequest = { vm.ocultar() }, Modifier.height(700.dp)) {
+            Column(modifier = Modifier.padding(all = 5.dp).verticalScroll(state = scrolState)) {
+                when(produto.value){
+                    is EstadosDeLoad.load -> {
+                        Text("Caregando.....", Modifier.padding(bottom = 5.dp))
+                    }
+                    is EstadosDeLoad.Caregado<*> -> {
+                        val produto = produto.value as EstadosDeLoad.Caregado<ProdutoServico>
+
+                            Text(text = " ${produto.obj.nome} ", Modifier.padding(bottom = 5.dp).align(Alignment.CenterHorizontally), fontSize = 20.sp)
+                            Text("Descricao : ${produto.obj.descrisao} ", Modifier.padding(bottom = 5.dp))
+                            Text("Tipo : ${if(produto.obj.servico) "Servico" else "Produto"} ", Modifier.padding(bottom = 5.dp))
+                            Text("Preco $ : ${vm.formatarPreco(produto.obj.preco.toDouble())} ", Modifier.padding(bottom = 5.dp))
+
+
+                    }
+                    is EstadosDeLoad.Empty -> {}
+                    else -> {}
+                }
+            }
+
+        }
+
+
+    }
+}
