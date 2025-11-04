@@ -60,7 +60,7 @@ interface Daos{
    @Transaction
    @Query("select * from requisicao where id = :id")
    fun requisicaoPorId(id:Int):Flow<juncaoRequesicaoEstadoClinete?>
-    @Transaction
+   @Transaction
    @Query("select rps.id as id,rps.id_prd,ps.nome,rps.quantidade,ps.produto_servico,ps.preco," +
            " ps.preco*rps.quantidade as total  from " +
           "requisicao_produto_servico as rps join produto_servico as ps on rps.id_prd=ps.id " +
@@ -68,6 +68,15 @@ interface Daos{
    fun requisicaoProdutoPorId(id:Int):Flow<List<ProdutoSolicitado>>
    @Query("select * from requisicao where id_est = :id")
    fun requisicaoPorEstado(id:Int):Flow<JuncaoRequesicaoProduto?>
+   @Transaction
+   @Query("select*from requisicao where id_cli in (select id from clientes where nome like '%'||:query||'%' or cpf like '%'||:query||'%' or cnpj like '%'||:query||'%')")
+   fun RequisicaoPorCliente(query:String ):Flow<List<juncaoRequesicaoEstadoClinete>>
+   @Transaction
+   @Query("select*from requisicao where id_est in (select id from estados where descricao like '%'||:query||'%')")
+   fun RequisicaoPorEstado(query:String ):Flow<List<juncaoRequesicaoEstadoClinete>>
+   @Transaction
+   @Query("select*from requisicao where id in(select id_req from logs_mudancas where data_mudanca like '%'||:query||'%') ")
+   fun RequisicaoPorData(query:String ):Flow<List<juncaoRequesicaoEstadoClinete>>
    @Update
    suspend fun atualizarRequisicao(requisicao: EntidadeRequisicao)
    @Insert

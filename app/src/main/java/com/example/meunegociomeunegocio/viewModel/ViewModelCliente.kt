@@ -25,7 +25,7 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
     val daosClioente= MutableStateFlow<TelasInternasDadosDeClientes>(TelasInternasDadosDeClientes.Telefone)
     val pesquisa= MutableStateFlow<Pesquisa?>(null)
     val fluxoDeCliente =repositorio.fluxoDeClientes().map {
-        delay(4000)
+
         if(it==null||it.size==0) EstadosDeLoad.Empty
         else EstadosDeLoad.Caregado(it)
     }

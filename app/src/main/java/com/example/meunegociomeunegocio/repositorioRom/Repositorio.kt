@@ -83,6 +83,33 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
         else
         ProdutoServico(id=it.id, servico = it.servico,nome=it.nome,descrisao = it.descrisao, preco = it.preco,ativo=it.atiovo)}
     fun fluxoDeEstados()=dao.fluxoDeEstados()
+    fun fluxoDeRequisicoesPorCliente(query:String)=dao.RequisicaoPorCliente(query).map {
+        it.map {
+            DadosDaRequisicao(requisicao = Requisicao(it.requisicao.id,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc ,obs = it.requisicao.obs),
+                estado = Estado(it.estado.id,it.estado.descricao),
+                cliente = Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj))
+        }
+
+
+    }
+    fun fluxoDeRequisicoesPorDataDeMudanca(query: String)=dao.RequisicaoPorData(query).map {
+        it.map {
+            DadosDaRequisicao(requisicao = Requisicao(it.requisicao.id,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc ,obs = it.requisicao.obs),
+                estado = Estado(it.estado.id,it.estado.descricao),
+                cliente = Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj))
+        }
+
+
+    }
+    fun fluxoDeRequisicaoPorEstado(query: String)=dao.RequisicaoPorEstado(query).map {
+        it.map {
+            DadosDaRequisicao(requisicao = Requisicao(it.requisicao.id,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc ,obs = it.requisicao.obs),
+                estado = Estado(it.estado.id,it.estado.descricao),
+                cliente = Cliente(it.cliente.id,it.cliente.nome,it.cliente.cpf,it.cliente.cnpj))
+        }
+
+
+    }
     // acoes em clientes
     suspend fun inserirCliente(cliente: Cliente)= coroutinesScope.async {   dao.inserirClientes(EntidadeClientes(cliente.id,cliente.nome,cliente.cpf,cliente.cnpj))}.await()
     suspend fun apagarCliente(clientes: Cliente)=coroutinesScope.launch { dao.deletarCliente(EntidadeClientes(clientes.id,clientes.nome,clientes.cpf,clientes.cnpj)) }

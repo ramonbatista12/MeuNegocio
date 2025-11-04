@@ -2,6 +2,7 @@ package com.example.meunegociomeunegocio.apresentacaoRequisicoes
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -15,18 +16,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Card
 
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,9 +56,12 @@ import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
 import com.example.meunegociomeunegocio.repositorioRom.Mudanca
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.viewModel.FiltroDePesquisaRequisicoes
 import com.example.meunegociomeunegocio.viewModel.ListaHistorico
+import com.example.meunegociomeunegocio.viewModel.SelecaoDeFiltros
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeRequisicoes
 import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
+import kotlinx.coroutines.launch
 
 @Composable
 fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
@@ -92,7 +108,9 @@ private fun  ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequis
 @Composable
 private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSizeClass: WindowSizeClass, acao:(Int)->Unit){
     val estadosDeLoad =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(EstadosDeLoad.load)
-    LazyColumn(modifier = modifier) {
+    Column(modifier = modifier.padding(top = 10.dp)) {
+    BarraDePesquisaRequisicoes(vm = vm, Modifier.align(Alignment.CenterHorizontally).fillMaxWidth().padding(horizontal = 5.dp),windowSizeClass)
+    LazyColumn(modifier = Modifier) {
         stickyHeader {
             CabesalhoRequisicao(windowSizeClass = windowSizeClass)
         }
@@ -117,8 +135,126 @@ private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSi
 
 
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun BarraDePesquisaRequisicoes(vm: ViewModelRequisicoes,modifier: Modifier=Modifier,windowSizeClass: WindowSizeClass){
+    val  searchBarState = rememberSearchBarState()
+    val query =remember { mutableStateOf("") }
+    val expandido=remember { mutableStateOf(false) }
+    val coroutineScope =rememberCoroutineScope()
+    val interacao =remember { MutableInteractionSource() }
+    val espancaoDoFiltro=remember { mutableStateOf(false) }
+    val filtroSelecionado=remember { mutableStateOf<SelecaoDeFiltros>(SelecaoDeFiltros.Cliente) }
+    SearchBar(expanded = expandido.value,
+              onExpandedChange = {expandido.value=it},
+              inputField ={ SearchBarDefaults.InputField(query =query.value,
+                                                         expanded =expandido.value,
+                                                         onSearch = {when(filtroSelecionado.value){
+                                                             is SelecaoDeFiltros.Cliente -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Clientes(it))
+                                                             is SelecaoDeFiltros.Estado -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Estado(it))
+                                                             is SelecaoDeFiltros.Data -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Data(it))
+                                                         }},
+                                                         onExpandedChange = {coroutineScope.launch {
+                                                                             expandido.value=true
+                                                                             searchBarState.animateToExpanded()}},
+                                                         onQueryChange = {query.value=it
+                                                                          when(filtroSelecionado.value){
+                                                                              is SelecaoDeFiltros.Cliente -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Clientes(it))
+                                                                              is SelecaoDeFiltros.Estado -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Estado(it))
+                                                                              is SelecaoDeFiltros.Data -> vm.mudarFiltro(FiltroDePesquisaRequisicoes.Data(it))
+                                                                           }
+                                                                         },
+                                                         placeholder = {Text("Pesquisa")},
+                                                         leadingIcon = {Icon(painterResource(R.drawable.baseline_search_24),"")},
+                                                         trailingIcon = {
+                                                                 Row {
+                                                                     if(expandido.value)
+                                                                     MenuFiltro(expanded = espancaoDoFiltro, acaoDeFiltro = {
+                                                                         filtroSelecionado.value=it
+
+                                                                     })
+                                                                     Spacer(Modifier.padding(end = 10.dp))
+                                                                     Icon(painterResource(R.drawable.baseline_close_24),"",
+                                                                         Modifier.clickable(onClick = {
+                                                                             coroutineScope.launch {
+                                                                                 vm.limparFiltro()
+                                                                                 expandido.value=false
+                                                                                 searchBarState.animateToCollapsed()
+                                                                                 query.value=""
+                                                                             }
+                                                                         }))
+                                                                 }
 
 
+
+
+                                                         } )
+
+                                                            },
+
+
+             modifier = modifier ){
+           val pesquisa=vm.fluxoDePesquisaRequisicoes.collectAsStateWithLifecycle(EstadosDeLoad.Empty)
+           LazyColumn { 
+               stickyHeader {
+                   CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+               }
+               when(pesquisa.value){
+
+                   is EstadosDeLoad.Caregado<*> -> {
+                       val lista =pesquisa.value as EstadosDeLoad.Caregado<List<DadosDaRequisicao>>
+                       items(items = lista.obj) {
+                           ItemRwquisicao(it, windowSizeClass = windowSizeClass,
+                               acao = {
+                                   coroutineScope.launch {
+                                       vm.limparFiltro()
+                                       expandido.value=false
+                                       searchBarState.animateToCollapsed()
+                                       query.value=""
+                                       vm.mudarId(it)
+                                       vm.mostrarRequisicao(it)
+                                   }
+
+                               })
+                       }
+                   }
+                   else -> {}
+               }
+
+           }
+
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MenuFiltro(modifier: Modifier= Modifier,expanded: MutableState<Boolean>,acaoDeFiltro:(SelecaoDeFiltros)->Unit={}){
+
+    ExposedDropdownMenuBox(
+        onExpandedChange = {expanded.value=!expanded.value},
+        expanded = expanded.value,
+        modifier = modifier
+    ) {
+        if(!expanded.value)
+        Icon(painterResource(R.drawable.baseline_filter_list_24),"", Modifier.clickable(onClick = {expanded.value=true}))
+        DropdownMenu(expanded=expanded.value, onDismissRequest = {expanded.value=false}){
+          Row(modifier = Modifier.clickable(onClick = {
+              acaoDeFiltro(SelecaoDeFiltros.Cliente)
+              expanded.value=false
+          }).width(70.dp)) {Text("Cliente")}
+          Row(modifier = Modifier.clickable(onClick = {
+              acaoDeFiltro(SelecaoDeFiltros.Estado)
+              expanded.value=false
+          }).width(70.dp)) {  Text("Estado")}
+          Row(modifier = Modifier.clickable(onClick = {
+              acaoDeFiltro(SelecaoDeFiltros.Data)
+              expanded.value=false
+          }).width(70.dp)) {  Text("Data")}
+        }
+    }
+}
 
 @Composable
 private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass){
@@ -148,6 +284,7 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                 Descricao(requisicao.obj.requisicao.desc, modifier = Modifier.padding(bottom = 5.dp))
                 Custo(vm, modifier = Modifier.padding(bottom = 5.dp))
                 Estado(requisicao.obj.estado.descricao)
+                if(requisicao.obj.estado.descricao!="Cancelado") {
                 HorizontalDivider()
                 Row(modifier = Modifier.padding(vertical = 10.dp, horizontal = 5.dp).align(Alignment.CenterHorizontally)) {
                     OutlinedButton({
@@ -168,7 +305,7 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
 
-                }
+                }}
                 HorizontalDivider()
                 Row(modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 5.dp)) {
                     OutlinedButton({
@@ -359,7 +496,7 @@ private fun ItemRwquisicao(dados: DadosDaRequisicao,windowSizeClass: WindowSizeC
 
 @Composable
 private fun CabesalhoRequisicao(modifier: Modifier=Modifier,windowSizeClass: WindowSizeClass){
-    OutlinedCard (modifier = Modifier.fillMaxWidth()) {
+    Card (modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
             Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
 
@@ -382,11 +519,11 @@ private fun CabesalhoRequisicao(modifier: Modifier=Modifier,windowSizeClass: Win
 
 @Composable
 private fun CabesalhoEstado(modifier: Modifier=Modifier){
-    OutlinedCard (modifier = Modifier.fillMaxWidth()) {
+    Card (modifier = Modifier.fillMaxWidth(),colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
             Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
 
-                Text( "data", modifier = Modifier.width(250.dp))
+                Text( "data de modificacao", modifier = Modifier.width(250.dp))
                 Spacer(Modifier.padding(10.dp))
                 Text("Estado", modifier = Modifier.width(70.dp))
 

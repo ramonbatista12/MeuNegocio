@@ -279,7 +279,7 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
 
 @Composable
 private fun Cabesalho(windowSizeClass: WindowSizeClass){
-    OutlinedCard (modifier = Modifier.fillMaxWidth()) {
+    Card (modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor= MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
             Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
                 when{
@@ -303,7 +303,7 @@ private fun Cabesalho(windowSizeClass: WindowSizeClass){
 
 @Composable
 private fun CabesalhoProdutoSolicitado(windowSizeClass: WindowSizeClass){
-    OutlinedCard (modifier = Modifier.fillMaxWidth()) {
+    Card (modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor= MaterialTheme.colorScheme.background)) {
         Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp, bottom = 10.dp)){
             Row(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp, end = 5.dp)) {
                 when{
