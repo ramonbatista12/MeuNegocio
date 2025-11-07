@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Card
 
 import androidx.compose.material3.CardDefaults
@@ -26,10 +25,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -49,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutos
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutosRequisitados
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatData
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatarPreco
@@ -323,7 +321,9 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                     }
                 }
                 when(estadoListaHistorico.value){
-                    is ListaHistorico.Lista->{ListaDeProdutosRequisitados(vm=vm, windowSize =windowSizeClass)}
+                    is ListaHistorico.Lista->{
+                        ListaDeProdutosRequisitados(vm=vm, windowSize =windowSizeClass)
+                    }
                     is ListaHistorico.Historico->{ListaDeEstados(vm)}
                 }
             }}

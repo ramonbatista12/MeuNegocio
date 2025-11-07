@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
@@ -37,7 +38,7 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelMain
 import kotlinx.coroutines.launch
 
 @Composable
-fun BaraLateral(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit){
+fun BaraLateral(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit,vm: ViewModelMain){
     LaunchedEffect(Unit) {
         Log.d("Bara lateral","iniciada")
     }
@@ -46,11 +47,11 @@ fun BaraLateral(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNav
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{
         Log.d("Bara lateral","largura expandida  iniciada")
         BaraLateralLarguraEspandida(windowSizeClass,
-            modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   })
+            modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   }, vm = vm)
         }
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)->{
             BaraLateralLarguraEspandida(windowSizeClass,
-                modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   })
+                modifier = Modifier.width(70.dp) ,acaoDeNavegacao = { acaoDeNavegacao(it)   },vm=vm)
 
         }
 
@@ -77,8 +78,8 @@ private fun BaraLateralLarguraMedia(windowSizeClass: WindowSizeClass,modifier: M
 
 
 @Composable
-private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao)->Unit,modifier: Modifier=Modifier){
-    val estadoDaBara=remember{mutableStateOf<DestinosDeNavegacao>(DestinosDeNavegacao.Requisicoes)}
+private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao)->Unit,modifier: Modifier=Modifier,vm: ViewModelMain){
+    val estadoDaBara=vm.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
     when{
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)->{
             LaunchedEffect(Unit) {
@@ -86,7 +87,7 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeN
             }
             Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
                 IconesDeDestino.listaDeIcones.forEach {
-                    ItemDeIconesDeDestino(destino = it,acao ={ estadoDaBara.value=it
+                    ItemDeIconesDeDestino(destino = it,acao ={vm.atualizaEstadoSelecaoBarasNavegaveis(it)
                          acaoDeNavegacao(it)})
                 }
                 FloatingActionButton(onClick = {

@@ -89,7 +89,12 @@ private fun  CadastraCliente(vm: ViewModelCadastroDeCliente){
 @Composable
 private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente){
     val telefone= rememberTextFieldState()
-
+    val telefoneSalvo =vm.telefone.collectAsStateWithLifecycle()
+    LaunchedEffect(telefoneSalvo.value) {
+        if(telefoneSalvo.value!=null) {
+            telefone.setTextAndPlaceCursorAtEnd(telefoneSalvo.value!!.ddd+" "+telefoneSalvo.value!!.numero)
+        }
+    }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Cadastro de telefone")
         Spacer(Modifier.padding(10.dp))
@@ -107,7 +112,7 @@ private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente){
 
             OutlinedButton(onClick = {
                 val split=telefone.text.toString().split(" ")
-                vm.guardaTelefoneCriado(Telefone(0,0,split[0],split[1]))
+                vm.guardaTelefoneCriado(if(split.size==1)Telefone(0,0,"","") else Telefone(0,0,split[0],split[1]))
                 vm.prosimoEstagioDeCadastro()
 
                                      }, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
@@ -174,7 +179,18 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
                 Text("Anterior")
             }
 
-            OutlinedButton(onClick = {vm.prosimoEstagioDeCadastro()}, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
+            OutlinedButton(onClick = {
+                vm.guardarEnderecoCriado(Endereco(id=0,
+                                                  idCli=0,
+                                                  cidade =cidade.text.toString(),
+                                                  estado = estado.text.toString(),
+                                                  cep = cep.text.toString(),
+                                                  bairro = bairo.text.toString(),
+                                                  rua = rua.text.toString(),
+                                                  numero = numero.text.toString(),
+                                                  complemento = complemento.text.toString()
+                                                      ))
+                vm.prosimoEstagioDeCadastro()}, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
             ) {
                 Text("Prosimo")
             }

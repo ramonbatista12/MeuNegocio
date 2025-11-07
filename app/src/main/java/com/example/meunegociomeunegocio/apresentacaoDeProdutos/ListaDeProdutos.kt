@@ -10,6 +10,7 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -66,7 +66,7 @@ public fun String.formatData():String{
 }
 
 @Composable
-fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
+fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
     val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
@@ -86,7 +86,7 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelProdut
             is EstadosDeLoad.Caregado<*> -> {
                 val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
                 items(items = lista.obj){
-                    ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostrarProduto(it)}, acaoFormatacao = {vm.formatarPreco(it)})
+                    ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)})
                 }
             }
 
@@ -102,6 +102,42 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelProdut
 }
 
 @Composable
+fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
+    val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
+    Column(modifier = modifier.padding(horizontal = 5.dp).fillMaxWidth(0.4f)) {
+        BaraDePesquisaProdutos(modifier = Modifier.fillMaxWidth().padding(vertical = 5.5.dp, horizontal = 5.dp),vm = vm)
+        LazyColumn {
+            stickyHeader{
+                Cabesalho(windowSize)
+            }
+            when(estadosDeLoad.value){
+                is EstadosDeLoad.Empty -> {
+                }
+                is EstadosDeLoad.Erro->{}
+                is EstadosDeLoad.load -> {
+                    items(count = 5) {
+                        ItemDelLoadTabelas()
+
+                    }}
+                is EstadosDeLoad.Caregado<*> -> {
+                    val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+                    items(items = lista.obj){
+                        ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)})
+                    }
+                }
+
+            }
+
+
+
+
+        }
+    }
+
+
+}
+
+@Composable
 fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequisicoes, windowSize: WindowSizeClass){
     val produtos =vm.fluxoProdutosRequisitados.collectAsStateWithLifecycle(EstadosDeLoad.load)
      when(produtos.value){
@@ -112,6 +148,7 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequis
 
                  LazyColumn {
                      stickyHeader{
+                         if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) || windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
                          CabesalhoProdutoSolicitado(windowSize)
                      }
                      items(items = produtos.obj){
@@ -239,42 +276,72 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
         if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
             Log.d("texte","window size class expandido")
     }
+    when{
+       !windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&
+       !windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)->{
 
-    Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
-        Box(modifier = Modifier.fillMaxSize()){
+           Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+               Box(Modifier.fillMaxWidth().padding(5.dp)){
+                   Column(modifier = Modifier.align(Alignment.CenterStart).padding(start = 5.dp)) {
+                       Text("Produto : ${produto.nomePrd}")
+                       Text("Preço :${produto.preco.toString().formatarPreco()}")
+                       Text("Quntidade : ${produto.qnt.toString()}", Modifier)
+                  }
+                   Row(Modifier.align(Alignment.BottomEnd)) {
+                       IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
+                           Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
+                       }
+
+                       IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
+                           Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
+                       }
+
+                   }
+               }
+
+           }
+       }
+
+        else->{
+            Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+                Box(modifier = Modifier.fillMaxSize()){
 
 
-            Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
-                when{
-                    windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)|| windowSize.isWidthAtLeastBreakpoint(
-                        WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(150.dp), overflow = TextOverflow.Ellipsis)
-                    else->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                    Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
+                        when{
+                            windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)|| windowSize.isWidthAtLeastBreakpoint(
+                                WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(150.dp), overflow = TextOverflow.Ellipsis)
+                            else->Text(produto.nomePrd, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                        }
+
+                        Spacer(Modifier.padding(10.dp))
+                        Text(produto.preco.toString().formatarPreco(), Modifier.width(70.dp))
+                        Spacer(Modifier.padding(10.dp))
+                        Text(produto.qnt.toString(), Modifier.width(50.dp))
+                        Spacer(Modifier.padding(10.dp))
+                        Text(acaoFormatacao(produto.total.toDouble()), Modifier.width(70.dp))
+
+
+                    }
+                    FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
+                        IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
+                            Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
+                        }
+
+                        IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
+                            Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
+                        }
+
+                    }
+
+                    HorizontalDivider(Modifier.fillMaxWidth())
                 }
-
-                Spacer(Modifier.padding(10.dp))
-                Text(produto.preco.toString().formatarPreco(), Modifier.width(70.dp))
-                Spacer(Modifier.padding(10.dp))
-                Text(produto.qnt.toString(), Modifier.width(50.dp))
-                Spacer(Modifier.padding(10.dp))
-                Text(acaoFormatacao(produto.total.toDouble()), Modifier.width(70.dp))
-
-
             }
-            FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
-                IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
-                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
-                }
 
-                IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
-                    Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
-                }
-
-            }
-
-            HorizontalDivider(Modifier.fillMaxWidth())
         }
     }
+
 }
 
 @Composable

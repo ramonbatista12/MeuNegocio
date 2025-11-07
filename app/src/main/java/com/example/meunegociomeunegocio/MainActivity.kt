@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,13 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.componetesMain.BaraLateral
 import com.example.meunegociomeunegocio.componetesMain.BarraInferior
+import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.Navigraf
 import com.example.meunegociomeunegocio.repositorioRom.EntidadeClientes
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
@@ -40,19 +44,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var  repositorio: Repositorio
+
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val lifecycle =lifecycleScope
-        lifecycle.launch {
-            repositorio.fluxoDeClientes().collect {
-                Log.d("MainActivity",it.toString() +" esiste dados aqui ")
-            }
-        }
+
+
         setContent {
             MeuNegocioMeunegocioTheme {
                     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
             PermanentNavigationDrawer(drawerContent = {
               BaraLateral(windowSizeClass,{
                   mainCorotineScope.launch { navHostController.navigate(it) }
-              })
+              },mainViewModel)
             }, modifier = Modifier.fillMaxSize().safeDrawingPadding()
 
                  ) {
@@ -73,8 +72,26 @@ class MainActivity : ComponentActivity() {
                                                     mainCorotineScope.launch { navHostController.navigate(it) }},
                                                 vm = mainViewModel
                     ) },
-                    floatingActionButton = {if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND))
-                                            FloatingActionButton(onClick = {}){} }){
+                    floatingActionButton = {if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&
+                                               !windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)){
+                        val estadoDaBara =mainViewModel.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
+                        FloatingActionButton(onClick = {
+                             when(estadoDaBara.value){
+                                 is DestinosDeNavegacao.Produtos -> {
+
+                                 }
+                                 is DestinosDeNavegacao.Clientes -> {                                     mainCorotineScope.launch {
+                                     navHostController.navigate(DestinosDeNavegacao.AdicaoDeCleintes)
+                                 }}
+                                 is DestinosDeNavegacao.Requisicoes -> {}
+                                 else -> {}
+
+                             }
+                        }){
+                            Icon(painter = painterResource(R.drawable.baseline_add_24),"")
+                        }
+                    }
+                                            }){
                     Navigraf(navController = navHostController,
                         windowSize=windowSizeClass,
                         modifier = Modifier.fillMaxSize())
@@ -86,12 +103,4 @@ class MainActivity : ComponentActivity() {
 
               }
        }
-}
-
-@Composable
-fun PermanentNavigation(modifier:Modifier= Modifier,drawerContent:@Composable ()->Unit,content:@Composable ()->Unit){
-    PermanentNavigationDrawer(drawerContent = {drawerContent()}, modifier =modifier ) {
-        content()
-
-    }
 }

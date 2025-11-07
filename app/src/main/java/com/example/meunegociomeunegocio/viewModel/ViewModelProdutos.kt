@@ -22,6 +22,8 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
     val mostraProduto = MutableStateFlow(false)
     private val coroutinesScope= viewModelScope
     private val idProduto = MutableStateFlow(0)
+    private val _telasDeProdutos=MutableStateFlow<TealasDeProduto>(TealasDeProduto.Lista)
+    val telasDeProdutos=_telasDeProdutos
     val produto = idProduto.flatMapLatest {
         repositorio.fluxoPodutoPorID(it).map {
             if(it==null) EstadosDeLoad.Empty
@@ -39,13 +41,7 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
     suspend fun atualizarProduto(produto: ProdutoServico){
         repositorio.atualizarProdutoServico(produto)
     }
-    fun mostrarProduto(id:Int){
-        coroutinesScope.launch {
-            idProduto.emit(id)
-            mostraProduto.emit(true)
-        }
 
-    }
     fun ocultar(){
         coroutinesScope.launch {
             mostraProduto.emit(false)
@@ -58,6 +54,23 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
         return String.format("%.2f",preco).replace(".",",")
 
     }
+    fun mostraDescricao(id: Int){
+        coroutinesScope.launch {
+            idProduto.emit(id)
+            telasDeProdutos.emit(TealasDeProduto.Descricao)
+
+        }
+    }
+    fun mostraLista(){
+        coroutinesScope.launch {
+            telasDeProdutos.emit(TealasDeProduto.Lista)
+        }
+    }
 }
 
 data class PesquiProduto(val prod: String)
+sealed class TealasDeProduto(){
+    object Lista : TealasDeProduto()
+    object Descricao : TealasDeProduto()
+
+}

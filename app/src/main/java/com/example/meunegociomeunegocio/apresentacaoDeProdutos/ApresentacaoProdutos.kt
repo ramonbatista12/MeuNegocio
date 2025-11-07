@@ -2,7 +2,7 @@ package com.example.meunegociomeunegocio.apresentacaoDeProdutos
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,13 +21,36 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.viewModel.TealasDeProduto
 
 @Composable
 fun ApresentacaoProdutos(modifier: Modifier=Modifier,
                          windowSize: WindowSizeClass,
                          vm: ViewModelProdutos ){
+      when{
+          windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> {
+              Row(modifier = modifier) {
+                  ListaDeProdutosExpandido(Modifier,vm,windowSize)
+                  VerticalDivider(Modifier.padding(horizontal = 5.dp))
+                  DetalhesDeProdutosEspandido(vm,modifier)
+                }
+          }
+          else -> {
+              val telas=vm.telasDeProdutos.collectAsStateWithLifecycle()
+              when(telas.value){
+                  is TealasDeProduto.Lista -> {
+                      ListaDeProdutos(modifier,vm,windowSize)
+                  }
+                  is TealasDeProduto.Descricao -> {
+                      DetalhesDeProdutosCompate(vm,modifier)
+                  }
+              }
 
-     ListaDeProdutosRequisitados(modifier,vm,windowSize)
+
+          }
+
+      }
+
      MostrarProduto(vm)
 
            }

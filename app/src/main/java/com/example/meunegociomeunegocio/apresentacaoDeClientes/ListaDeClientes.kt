@@ -127,7 +127,7 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCl
                                                           onExpandedChange = {estadoDaBara.value=it},
                                                           placeholder = {Text("Pesquisar")},
                                                           leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
-                                                          trailingIcon = {Icon(painterResource(R.drawable.baseline_delete_24),null,
+                                                          trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                                                               Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
               expanded = estadoDaBara.value,
               onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
