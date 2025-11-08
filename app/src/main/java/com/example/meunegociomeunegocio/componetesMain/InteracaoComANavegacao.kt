@@ -95,7 +95,9 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeN
                          is DestinosDeNavegacao.Clientes -> {
                              acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeCleintes)
                          }
-                         is DestinosDeNavegacao.Produtos -> {}
+                         is DestinosDeNavegacao.Produtos -> {
+                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos)
+                         }
                          is DestinosDeNavegacao.Requisicoes -> {}
                          else -> {}
                      }

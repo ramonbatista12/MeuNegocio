@@ -130,16 +130,18 @@ private fun Iniciais(nome:String,modifier: Modifier= Modifier,size:Dp=100.dp,sp:
     val iniciais= remember{mutableStateOf("")}
     val color= remember{ mutableStateOf(Cores.lisColors[0])}
     LaunchedEffect(nome) {
+        Log.d("Iniciais","nome mudou $nome")
         val split =nome.split(Regex("\\s"))
         if (split.size>=2){
-            iniciais.value=split[0].first().toString()+split[1].first().toString()
-
+            val inicialPrimeiroNome =split[0].first()
+            val inicialsegundoNome= if(split[1].isEmpty()) "" else split[1].first()
+            iniciais.value=inicialPrimeiroNome.toString()+inicialsegundoNome.toString()
         }
         else
             iniciais.value=split[0].first().toString()
 
     }
-    LaunchedEffect(iniciais) {
+    LaunchedEffect(iniciais.value) {
         val char =iniciais.value.subSequence(0,1)
         val indice = char[0].code % Cores.lisColors.size
 

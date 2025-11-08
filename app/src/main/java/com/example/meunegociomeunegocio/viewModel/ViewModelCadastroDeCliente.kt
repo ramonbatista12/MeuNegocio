@@ -2,6 +2,7 @@ package com.example.meunegociomeunegocio.viewModel
 
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,54 +12,80 @@ import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 @HiltViewModel
 class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Repositorio) : ViewModel() {
+     val Tag ="ViewModelCadastroDeCliente"
      val coroutineScope=viewModelScope
      val snackbarHostState = SnackbarHostState()
      private val _id = MutableStateFlow<Long>(0)
      private val estagios = GerenciadorDeEstagios()
+     val clienteAdicionado= MutableStateFlow<Boolean>(false)
+     val enderecoAdicionado= MutableStateFlow<Boolean>(false)
+     val telefoneAdicionado= MutableStateFlow<Boolean>(false)
      val cliente= MutableStateFlow<Cliente?>(null)
      val endereco= MutableStateFlow<Endereco?>(null)
      val telefone= MutableStateFlow<Telefone?>(null)
      val id =_id
      val estagio=estagios.fluxoDeEstagios
-     suspend fun adicionarCliente(cliente: Cliente){
-        coroutineScope.launch {
-            try {
-              val idCli = repositorio.inserirCliente( AuxiliarValidacaoDadosDeClientes().validarCliente(cliente))
-                _id.emit(idCli)
-            }catch (e:IllegalArgumentException){
-                estagios.irAoEstagio(EstagiosDeCadastroClientes.Nome)
-                snackbarHostState.showSnackbar(e.message.toString())
-            }
+     suspend fun adicionarCliente(cliente: Cliente?) {
 
-        }
+
+              val idAux= repositorio.inserirCliente( AuxiliarValidacaoDadosDeClientes().validarCliente(cliente))
+                _id.emit(idAux)
+
+
+
+
+
 
     }
-     suspend fun adicionarEndereco(endereco: Endereco){
-        coroutineScope.launch {
+     suspend fun adicionarEndereco(endereco: Endereco?){
+        repositorio.inserirEndereco(AuxiliarValidacaoDadosDeClientes().validarEndereco(endereco,_id.value.toInt()))}
+     suspend fun adicionarTelefone(telefone: Telefone?){
+         Log.d(Tag,"adicionarTelefone foi chamado")
+      repositorio.inserirTelefone(AuxiliarValidacaoDadosDeClientes().validarTelefone(telefone,_id.value.toInt()))}
+    suspend fun salvar(callback:()->Unit){
+            if(!clienteAdicionado.value)
+             try {
+                 adicionarCliente(cliente.value)
+                 clienteAdicionado.emit(true)
+             }catch (e: Exception){
+                 coroutineScope.launch { snackbarHostState.showSnackbar(e.message.toString()) }
+                 delay(1000)
+                 estagios.irAoEstagio(EstagiosDeCadastroClientes.Nome)
+                 clienteAdicionado.emit(false)
+                 return
+             }
+        if(!enderecoAdicionado.value)
             try {
-                repositorio.inserirEndereco(AuxiliarValidacaoDadosDeClientes().validarEndereco(endereco,_id.value.toInt()))
+                adicionarEndereco(endereco.value)
+                enderecoAdicionado.emit(true)
             }catch (e: Exception){
+                coroutineScope.launch {snackbarHostState.showSnackbar(e.message.toString())  }
                 estagios.irAoEstagio(EstagiosDeCadastroClientes.Endereco)
-                snackbarHostState.showSnackbar(e.message.toString())
+                enderecoAdicionado.emit(false)
+                return
             }
-
-        }
-
-    }
-     suspend fun adicionarTelefone(telefone: Telefone){
-        coroutineScope.launch {
+        if(!telefoneAdicionado.value)
             try {
-                repositorio.inserirTelefone(AuxiliarValidacaoDadosDeClientes().validarTelefone(telefone,_id.value.toInt()))
+                adicionarTelefone(telefone.value)
+                enderecoAdicionado.emit(true)
             }catch (e: Exception){
+                coroutineScope.launch {snackbarHostState.showSnackbar(e.message.toString())}
                 estagios.irAoEstagio(EstagiosDeCadastroClientes.Telefone)
-                snackbarHostState.showSnackbar(e.message.toString())
+                enderecoAdicionado.emit(false)
+                return
             }
+            coroutineScope.launch {snackbarHostState.showSnackbar("Dados foram salvos no banco de dados")
+                                   callback() }
 
-        }
+
+
 
     }
      fun  prosimoEstagioDeCadastro(){
@@ -89,7 +116,8 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
 }
 
 class AuxiliarValidacaoDadosDeClientes{
-    suspend fun  validarCliente(cliente: Cliente): Cliente{
+    suspend fun  validarCliente(cliente: Cliente?): Cliente{
+       if(cliente==null) throw IllegalArgumentException("Cliente nao pode estar vasio")
        val nome= validarNome(cliente.nome)
        val cpf =  validarCPF(cliente.cpf)
        val cnpj =  validarCNPJ(cliente.cnpj)
@@ -108,6 +136,7 @@ class AuxiliarValidacaoDadosDeClientes{
 
     private fun validarCNPJ(string: String?): String? {
         if(string==null) return string
+        if(string.isBlank()) return null
         if(string.length!=18) throw IllegalArgumentException("CNPJ invalido pois nao conten o numero coreto de digitos")
         if(!string.matches(Regex("\\d{2}.\\d{3}.\\d{3}/\\d{4}-\\d{2}"))) throw IllegalArgumentException("CNPJ invalido pois nao esta no formato correto")
         return string
@@ -122,6 +151,7 @@ class AuxiliarValidacaoDadosDeClientes{
 
     private fun validarCPF(string: String?):String? {
         if(string==null) return string
+        if(string.isBlank()) return null
         if(string.length!=14) throw IllegalArgumentException("CPF invalido pois nao conten o numero coreto de digitos  ")
         if(!string.matches(Regex("\\d{3}.\\d{3}.\\d{3}-\\d{2}"))) throw IllegalArgumentException("CPF invalido pois nao esta no formato correto")
         return string

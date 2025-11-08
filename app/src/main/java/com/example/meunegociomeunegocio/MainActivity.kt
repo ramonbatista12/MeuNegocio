@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                         FloatingActionButton(onClick = {
                              when(estadoDaBara.value){
                                  is DestinosDeNavegacao.Produtos -> {
-
+                                  navHostController.navigate(DestinosDeNavegacao.AdicaoDeProdutos)
                                  }
                                  is DestinosDeNavegacao.Clientes -> {                                     mainCorotineScope.launch {
                                      navHostController.navigate(DestinosDeNavegacao.AdicaoDeCleintes)

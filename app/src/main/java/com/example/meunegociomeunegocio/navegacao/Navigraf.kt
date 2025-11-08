@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.window.core.layout.WindowSizeClass
+import com.example.meunegociomeunegocio.adicaoDeProdutos.AdicaoDePRodutos
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ApresentacaoDeClientes
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ApresentacaoProdutos
 import com.example.meunegociomeunegocio.apresentacaoRequisicoes.ApresentacaoDeRequisicao
@@ -32,7 +33,10 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
             ApresentacaoProdutos(vm = hiltViewModel(), modifier = modifier,windowSize = windowSize)
         }
         composable<DestinosDeNavegacao.AdicaoDeCleintes>{
-            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel())
+            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel(), acaoDeVoutar = {navController.popBackStack()})
+        }
+        composable<DestinosDeNavegacao.AdicaoDeProdutos>{
+            AdicaoDePRodutos(vm = hiltViewModel(),acaoDeVoutar = {navController.popBackStack()})
         }
         dialog<DestinosDeNavegacao.Dialogos.NovoCliente>{
 

@@ -1,5 +1,6 @@
 package com.example.meunegociomeunegocio.cadastroDeClientes
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +14,14 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,27 +35,33 @@ import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
 import com.example.meunegociomeunegocio.viewModel.EstagiosDeCadastroClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCadastroDeCliente
+import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CadastroCompat(vm: ViewModelCadastroDeCliente){
+fun CadastroCompat(vm: ViewModelCadastroDeCliente,acaoDeVoltar:()->Unit){
      val estagios=vm.estagio.collectAsStateWithLifecycle()
-    when(estagios.value){
-        is EstagiosDeCadastroClientes.Nome -> {
-            CadastraCliente(vm)
+    Scaffold (snackbarHost = {SnackbarHost(vm.snackbarHostState)}){
+        when(estagios.value){
+            is EstagiosDeCadastroClientes.Nome -> {
+                CadastraCliente(vm=vm, acaoDevoutar =  acaoDeVoltar)
+            }
+            is EstagiosDeCadastroClientes.Endereco -> {
+                CadastraEndereco(vm)
+            }
+            is EstagiosDeCadastroClientes.Telefone -> {
+                CadastraTelefone(vm)
+            }
         }
-        is EstagiosDeCadastroClientes.Endereco -> {
-            CadastraEndereco(vm)
-        }
-        is EstagiosDeCadastroClientes.Telefone -> {
-            CadastraTelefone(vm)
-        }
+
     }
+
 
 
 }
 
 @Composable
-private fun  CadastraCliente(vm: ViewModelCadastroDeCliente){
+private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={}){
     val cliente =vm.cliente.collectAsStateWithLifecycle()
     val nome= rememberTextFieldState()
     val cpf=rememberTextFieldState()
@@ -75,21 +86,27 @@ private fun  CadastraCliente(vm: ViewModelCadastroDeCliente){
         OutlinedTextField(state = cnpj, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.8f), label = {Text("Cnpj")}, inputTransformation = FormatoCnpj())
 
         Box(Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = {
+            Button(onClick = acaoDevoutar, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
+            ) {
+                Text("Cancelar")
+            }
+            Button(onClick = {
                 vm.guardaClienteCriado(Cliente(0,nome.text.toString(),cpf.text.toString(),cnpj.text.toString()))
                 vm.prosimoEstagioDeCadastro()}, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
             ) {
-                Text("Prosimo")
+                Text("Endereco")
             }
         }
+
     }
 
 }
 
 @Composable
-private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente){
+private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={}){
     val telefone= rememberTextFieldState()
     val telefoneSalvo =vm.telefone.collectAsStateWithLifecycle()
+    val coroutineScope= rememberCoroutineScope()
     LaunchedEffect(telefoneSalvo.value) {
         if(telefoneSalvo.value!=null) {
             telefone.setTextAndPlaceCursorAtEnd(telefoneSalvo.value!!.ddd+" "+telefoneSalvo.value!!.numero)
@@ -105,19 +122,22 @@ private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente){
 
 
         Box(Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = {vm.estagioDeCadastroAnterior()}, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
+            Button(onClick = {vm.estagioDeCadastroAnterior()}, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
             ) {
-                Text("Anterior")
+                Text("Endereco")
             }
 
-            OutlinedButton(onClick = {
-                val split=telefone.text.toString().split(" ")
-                vm.guardaTelefoneCriado(if(split.size==1)Telefone(0,0,"","") else Telefone(0,0,split[0],split[1]))
-                vm.prosimoEstagioDeCadastro()
+            Button(onClick = {
+                coroutineScope.launch {
+                    val split=telefone.text.toString().split(" ")
+                    vm.guardaTelefoneCriado(if(split.size==1)Telefone(0,0,"","") else Telefone(0,0,split[0],split[1]))
+                    vm.salvar({acaoDevoutar()})
+                }
+
 
                                      }, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
             ) {
-                Text("Prosimo")
+                Text("salvar")
             }
         }
     }
@@ -166,7 +186,7 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
 
 
         Box(Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = {
+            Button(onClick = {
                 vm.guardarEnderecoCriado(Endereco(0,0, cep = cep.text.toString(),
                                                        bairro = bairo.text.toString(),
                                                        cidade = cidade.text.toString(),
@@ -176,10 +196,10 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
                                                        complemento = complemento.text.toString()))
                 vm.estagioDeCadastroAnterior()}, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
             ) {
-                Text("Anterior")
+                Text("Cliente")
             }
 
-            OutlinedButton(onClick = {
+            Button(onClick = {
                 vm.guardarEnderecoCriado(Endereco(id=0,
                                                   idCli=0,
                                                   cidade =cidade.text.toString(),
@@ -192,7 +212,7 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
                                                       ))
                 vm.prosimoEstagioDeCadastro()}, modifier = Modifier.align(Alignment.CenterEnd).padding(20.dp)
             ) {
-                Text("Prosimo")
+                Text("Telefone")
             }
         }
     }

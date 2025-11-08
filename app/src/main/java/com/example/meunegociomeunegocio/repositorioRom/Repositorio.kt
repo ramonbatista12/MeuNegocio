@@ -120,7 +120,7 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     suspend fun atualizarEndereco(endereco: Endereco)=coroutinesScope.launch { dao.updateEndereco(EntidadeEndereco(endereco.id,endereco.idCli,endereco.cidade,endereco.estado,endereco.bairro,endereco.rua,endereco.complemento,endereco.numero,endereco.cep)) }
     //acoes em Telefone
     suspend fun atulizarTelefone(telefone: Telefone)=coroutinesScope.launch { dao.updateTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero))}
-    suspend fun inserirTelefone(telefone: Telefone)=coroutinesScope.launch { dao.apagarTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero))}
+    suspend fun inserirTelefone(telefone: Telefone)=coroutinesScope.launch { dao.insertTeleforn(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero))}
     suspend fun apagarTelefone(telefone: Telefone)=coroutinesScope.launch { dao.apagarTelefone(EntidadeTelefone(telefone.id,telefone.idCli,telefone.ddd,telefone.numero)) }
     //acoes em produtos
     suspend fun inserirProdutoServico(produto: ProdutoServico)=coroutinesScope.launch { dao.inserirProdutoServico(EntidadeProdutoServico(produto.id,produto.servico,produto.nome,produto.descrisao,produto.preco,produto.ativo)) }
