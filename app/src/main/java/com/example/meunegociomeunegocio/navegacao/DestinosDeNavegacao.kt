@@ -18,6 +18,9 @@ sealed class DestinosDeNavegacao{
     @Serializable
     object AdicaoDeProdutos: DestinosDeNavegacao()
     @Serializable
+    object AdicaoDeRequisicoes: DestinosDeNavegacao()
+
+    @Serializable
     /**
      * descreve os dialogogos gerenciados por Navigra
      * eles tabem sao um sub tipo de DestinoDeNavegacao

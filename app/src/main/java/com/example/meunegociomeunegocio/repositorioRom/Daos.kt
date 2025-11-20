@@ -54,6 +54,7 @@ interface Daos{
     suspend fun inserirProdutoServico(produto: EntidadeProdutoServico)
     @Delete
     suspend fun deletarProdutoServico(produto: EntidadeProdutoServico)
+
     // querys Requisicao
     @Query("Select * from requisicao")
     fun fluxoRequisicao():Flow<List<juncaoRequesicaoEstadoClinete>>

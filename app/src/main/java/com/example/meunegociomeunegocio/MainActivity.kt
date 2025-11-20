@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -27,10 +28,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.componetesMain.BaraLateral
 import com.example.meunegociomeunegocio.componetesMain.BarraInferior
+import com.example.meunegociomeunegocio.componetesMain.BotaoFlutuante
 import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.Navigraf
 import com.example.meunegociomeunegocio.repositorioRom.EntidadeClientes
@@ -58,6 +61,8 @@ class MainActivity : ComponentActivity() {
                     val navHostController = rememberNavController()
                     val mainCorotineScope = rememberCoroutineScope()
                     val mainViewModel: ViewModelMain= viewModel()
+                    val navibecstacEntry=navHostController.currentBackStackEntryAsState()
+
             PermanentNavigationDrawer(drawerContent = {
               BaraLateral(windowSizeClass,{
                   mainCorotineScope.launch { navHostController.navigate(it) }
@@ -74,27 +79,16 @@ class MainActivity : ComponentActivity() {
                     ) },
                     floatingActionButton = {if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)&&
                                                !windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)){
-                        val estadoDaBara =mainViewModel.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
-                        FloatingActionButton(onClick = {
-                             when(estadoDaBara.value){
-                                 is DestinosDeNavegacao.Produtos -> {
-                                  navHostController.navigate(DestinosDeNavegacao.AdicaoDeProdutos)
-                                 }
-                                 is DestinosDeNavegacao.Clientes -> {                                     mainCorotineScope.launch {
-                                     navHostController.navigate(DestinosDeNavegacao.AdicaoDeCleintes)
-                                 }}
-                                 is DestinosDeNavegacao.Requisicoes -> {}
-                                 else -> {}
-
-                             }
-                        }){
-                            Icon(painter = painterResource(R.drawable.baseline_add_24),"")
-                        }
+                        BotaoFlutuante(mainViewModel,{mainCorotineScope.launch { navHostController.navigate(it) }})
                     }
                                             }){
                     Navigraf(navController = navHostController,
                         windowSize=windowSizeClass,
-                        modifier = Modifier.fillMaxSize())
+                        modifier = Modifier.fillMaxSize(),
+                        avisoDeDestino = {mainViewModel.atualizaEstadoSelecaoBarasNavegaveis(it)},
+                        acaoMostrarBotaoDeAdicionar = {mainViewModel.mostraBOtaoDeAdicao()},
+                        acaoOcultarBotaoDeAdicionar = {mainViewModel.ocultarBOtaoDeAdicao()}
+                        )
 
                 }
 

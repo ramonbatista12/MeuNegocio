@@ -6,10 +6,13 @@ import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeClientes
+import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeProdutos
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
 import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Delay
@@ -33,22 +36,16 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
      val id =_id
      val estagio=estagios.fluxoDeEstagios
      suspend fun adicionarCliente(cliente: Cliente?) {
+                val idAux= repositorio.inserirCliente( AuxiliarValidacaoDadosDeClientes().validarCliente(cliente))
+                _id.emit(idAux)}
 
-
-              val idAux= repositorio.inserirCliente( AuxiliarValidacaoDadosDeClientes().validarCliente(cliente))
-                _id.emit(idAux)
-
-
-
-
-
-
-    }
      suspend fun adicionarEndereco(endereco: Endereco?){
         repositorio.inserirEndereco(AuxiliarValidacaoDadosDeClientes().validarEndereco(endereco,_id.value.toInt()))}
+
      suspend fun adicionarTelefone(telefone: Telefone?){
          Log.d(Tag,"adicionarTelefone foi chamado")
       repositorio.inserirTelefone(AuxiliarValidacaoDadosDeClientes().validarTelefone(telefone,_id.value.toInt()))}
+
     suspend fun salvar(callback:()->Unit){
             if(!clienteAdicionado.value)
              try {
@@ -56,7 +53,7 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
                  clienteAdicionado.emit(true)
              }catch (e: Exception){
                  coroutineScope.launch { snackbarHostState.showSnackbar(e.message.toString()) }
-                 delay(1000)
+
                  estagios.irAoEstagio(EstagiosDeCadastroClientes.Nome)
                  clienteAdicionado.emit(false)
                  return

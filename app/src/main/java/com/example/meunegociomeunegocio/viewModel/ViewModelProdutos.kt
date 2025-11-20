@@ -18,7 +18,7 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
         if(it.isEmpty()) EstadosDeLoad.Empty
         else EstadosDeLoad.Caregado(it)
     }
-    val fluxoDePesquisa= MutableStateFlow<PesquiProduto?>(null)
+    val pesquisa= MutableStateFlow<Pesquisa>(Pesquisa(""))
     val mostraProduto = MutableStateFlow(false)
     private val coroutinesScope= viewModelScope
     private val idProduto = MutableStateFlow(0)
@@ -31,17 +31,13 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
         }
 
     }
-    suspend fun salvarProduto(produto: ProdutoServico){
-        repositorio.inserirProdutoServico(produto)
-
-    }
-    suspend fun apagarProduto(produto: ProdutoServico){
-        repositorio.apagarProdutoServico(produto)
-    }
-    suspend fun atualizarProduto(produto: ProdutoServico){
-        repositorio.atualizarProdutoServico(produto)
+    val pesquisaDeProduto = pesquisa.flatMapLatest {
+        repositorio.fluxoDePesquisaDeProdutos(it.pesquisa)
     }
 
+    suspend fun mudarPesquisa(pesquisa: Pesquisa){
+        this.pesquisa.emit(pesquisa)
+    }
     fun ocultar(){
         coroutinesScope.launch {
             mostraProduto.emit(false)
@@ -68,7 +64,7 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
     }
 }
 
-data class PesquiProduto(val prod: String)
+
 sealed class TealasDeProduto(){
     object Lista : TealasDeProduto()
     object Descricao : TealasDeProduto()

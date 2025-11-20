@@ -43,6 +43,7 @@ import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import com.example.meunegociomeunegocio.viewModel.Pesquisa
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
+import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
@@ -74,6 +75,46 @@ fun ListaDeClientes(modifier: Modifier= Modifier,vm:ViewModelCliente){
                     val lista=estadoDeLoad.value as EstadosDeLoad.Caregado<List<Cliente>>
                     items(lista.obj) {
                         ItemsDeClientes(it, acao = {coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
+                    }
+                }
+            }
+
+
+
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ListaDeClientes(modifier: Modifier= Modifier,vm: ViewModelCriarRequisicoes){
+    val coroutineScope= rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        Log.d("ListaDeClientes","LaunchedEffect")
+    }
+    val estadoBaraDePesquisa =remember { mutableStateOf(false) }
+    val estadoDeLoad=vm.fluxoDeClientes.collectAsState(EstadosDeLoad.load)
+    Column(modifier=modifier) {
+        BaraDePesquisaClientes(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,{ coroutineScope.launch { vm.irparaTelaDeVisualizacaoDeNomeDeCliente()}})
+        LazyColumn(modifier= Modifier) {
+            when(estadoDeLoad.value){
+                is EstadosDeLoad.load -> {
+                    items(count = 5) {
+                        LoadClientes()
+                    }
+                }
+                is EstadosDeLoad.Empty -> {
+                    item {
+                        Text("Nenhum cliente encontrado")
+
+                    }}
+                is EstadosDeLoad.Erro -> {}
+                is EstadosDeLoad.Caregado<*> -> {
+                    val lista=estadoDeLoad.value as EstadosDeLoad.Caregado<List<Cliente>>
+                    items(lista.obj) {cli->
+                        ItemsDeClientes(cli, acao = {coroutineScope.launch { vm.selecionarCliente(Pair(cli.id,cli.nome))
+                                                                              vm.irparaTelaDeVisualizacaoDeNomeDeCliente()}})
                     }
                 }
             }
@@ -140,6 +181,41 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCl
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCriarRequisicoes,acaoDeVoltar:()->Unit){
+    val coroutineScope =rememberCoroutineScope()
+    val estadoDaBara= remember { mutableStateOf(false) }
+    val texto =remember { mutableStateOf("") }
+    val pesquisa =vm.pesquisaDeClientes.collectAsState(emptyList())
+    SearchBar(modifier = modifier,
+        inputField = { SearchBarDefaults.InputField(query = texto.value,
+            onQueryChange = {texto.value=it
+               coroutineScope.launch { vm.mudarPesquisa(
+                                       Pesquisa(texto.value)) }
+            },
+            onSearch = {
+                coroutineScope.launch {vm.mudarPesquisa(
+                                      Pesquisa(texto.value)) }
+
+            },
+            expanded = estadoDaBara.value,
+            onExpandedChange = {estadoDaBara.value=it},
+            placeholder = {Text("Pesquisar")},
+            leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
+            trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
+                Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+        expanded = estadoDaBara.value,
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        LazyColumn {
+            items(items = pesquisa.value) {dataCli->
+                ItemsDeClientes(dataCli.cliente,{coroutineScope.launch { vm.selecionarCliente(Pair(dataCli.cliente.id,dataCli.cliente.nome))
+                                                                          acaoDeVoltar()}})
+            }
+        }
+    }
+
+}
 
 @Composable
 private fun CirculoDeInicias(nome: String,id:Int=0){

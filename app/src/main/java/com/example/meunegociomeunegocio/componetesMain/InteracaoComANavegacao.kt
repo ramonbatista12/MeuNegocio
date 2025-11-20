@@ -31,17 +31,49 @@ import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import com.example.meunegociomeunegocio.viewModel.ViewModelMain
 import kotlinx.coroutines.launch
 
+
 @Composable
-fun BaraLateral(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit,vm: ViewModelMain){
-    LaunchedEffect(Unit) {
-        Log.d("Bara lateral","iniciada")
+fun BotaoFlutuante(vm: ViewModelMain,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit){
+
+    val estadoDaBara =vm.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
+    val ocultarBotao=vm.ocultarBoraoDeAdicao.collectAsStateWithLifecycle()
+    if(!ocultarBotao.value)
+    FloatingActionButton(onClick = {
+        when(estadoDaBara.value){
+            is DestinosDeNavegacao.Produtos -> {
+                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos)
+            }
+            is DestinosDeNavegacao.Clientes -> {
+                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeCleintes)
+            }
+            is DestinosDeNavegacao.Requisicoes -> {
+                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes)
+            }
+            else -> {}
+
+        }
+    }){
+        Icon(painter = painterResource(R.drawable.baseline_add_24),"")
     }
+}
+
+
+
+
+@Composable
+fun BaraLateral(windowSizeClass: WindowSizeClass, acaoDeNavegacao: (DestinosDeNavegacao) -> Unit, vm: ViewModelMain,
+                ){
+
+
+
 
     when{
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{
@@ -78,8 +110,12 @@ private fun BaraLateralLarguraMedia(windowSizeClass: WindowSizeClass,modifier: M
 
 
 @Composable
-private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeNavegacao: (DestinosDeNavegacao)->Unit,modifier: Modifier=Modifier,vm: ViewModelMain){
+private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,
+                                        acaoDeNavegacao: (DestinosDeNavegacao)->Unit,
+                                        modifier: Modifier=Modifier,
+                                        vm: ViewModelMain){
     val estadoDaBara=vm.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
+    val ocultarBotao =vm.ocultarBoraoDeAdicao.collectAsStateWithLifecycle()
     when{
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)->{
             LaunchedEffect(Unit) {
@@ -90,6 +126,7 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeN
                     ItemDeIconesDeDestino(destino = it,acao ={vm.atualizaEstadoSelecaoBarasNavegaveis(it)
                          acaoDeNavegacao(it)})
                 }
+                if(!ocultarBotao.value)
                 FloatingActionButton(onClick = {
                      when(estadoDaBara.value){
                          is DestinosDeNavegacao.Clientes -> {
@@ -98,7 +135,9 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,acaoDeN
                          is DestinosDeNavegacao.Produtos -> {
                              acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos)
                          }
-                         is DestinosDeNavegacao.Requisicoes -> {}
+                         is DestinosDeNavegacao.Requisicoes -> {
+                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes)
+                         }
                          else -> {}
                      }
                 }

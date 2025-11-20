@@ -51,6 +51,7 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
                 })}
     }
     fun fluxoProdutoServico(): Flow<List<ProdutoServico>> = dao.fluxoProdutoServico().map { it.map { ProdutoServico(it.id,it.servico,it.nome,it.descrisao,it.preco,it.atiovo)  } }
+    fun fluxoDePesquisaDeProdutos(produto: String)=dao.fluxoPesquisaProdutoNome(produto).map { it.map { ProdutoServico(it.id,it.servico,it.nome,it.descrisao,it.preco,it.atiovo)  } }
     fun fluxoRequisicao(): Flow<List<DadosDaRequisicao>> = dao.fluxoRequisicao().map {
         it.map{
             DadosDaRequisicao(requisicao = Requisicao(it.requisicao.id,it.requisicao.idCli,it.requisicao.idEs,it.requisicao.desc ,obs = it.requisicao.obs),

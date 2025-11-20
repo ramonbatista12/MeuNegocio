@@ -41,7 +41,7 @@ class AuxiliarValidacaoDadosDeProdutos{
     }
     private suspend fun validarPreco(string: String): Float{
         if(string.isBlank()) throw IllegalArgumentException("Preco nao pode estar vasio")
-        if(string.matches(Regex("0,0|0,00"))) throw IllegalArgumentException("Preco nao pode ter valor 0,0")
+        if(string.equals("0.0")||string.equals("0.00")) throw IllegalArgumentException("Preco nao pode ter valor 0,0")
         return string.toFloat()
 
     }

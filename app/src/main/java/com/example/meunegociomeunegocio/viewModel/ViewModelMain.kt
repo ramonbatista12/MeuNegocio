@@ -11,6 +11,8 @@ class ViewModelMain: ViewModel(){
     private val Tag="ViewModelMain"
     private val _permicaoDeNotificao = MutableStateFlow<Boolean>(false)
     private val _estadoSelecaoBarasNavegaveis =MutableStateFlow<DestinosDeNavegacao>(DestinosDeNavegacao.Requisicoes)
+    private val _ocultarBotoesDeAdicao=MutableStateFlow<Boolean>(false)
+    val ocultarBoraoDeAdicao=_ocultarBotoesDeAdicao
     val permicaoDeNotificacao=_permicaoDeNotificao
     val estadoSelecaoBarasNavegaveis=_estadoSelecaoBarasNavegaveis
     private val corotineScope =viewModelScope
@@ -19,6 +21,8 @@ class ViewModelMain: ViewModel(){
         _permicaoDeNotificao.emit(permicao)}
     fun atualizaEstadoSelecaoBarasNavegaveis(destino: DestinosDeNavegacao){viewModelScope.launch { _estadoSelecaoBarasNavegaveis.value=destino}}
 
+    fun ocultarBOtaoDeAdicao(){viewModelScope.launch { _ocultarBotoesDeAdicao.emit(true)}}
+    fun mostraBOtaoDeAdicao(){viewModelScope.launch { _ocultarBotoesDeAdicao.emit(false)}}
 
 }
 

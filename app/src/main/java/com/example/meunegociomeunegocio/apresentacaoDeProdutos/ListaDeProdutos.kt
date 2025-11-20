@@ -52,7 +52,11 @@ import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.viewModel.Pesquisa
+import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
+import kotlinx.coroutines.launch
+
 public fun String.formatarPreco():String{
     return String.format("%.2f",this.toDouble()).replace(".",",")
 }
@@ -69,7 +73,7 @@ public fun String.formatData():String{
 fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
     val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
-      BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
+      BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,windowSize)
     LazyColumn {
         stickyHeader{
             Cabesalho(windowSize)
@@ -102,10 +106,51 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSi
 }
 
 @Composable
+fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelCriarRequisicoes, windowSize: WindowSizeClass){
+    val estadosDeLoad=vm.fluxoDeProdutos.collectAsState(initial = EstadosDeLoad.load)
+    val coroutineScope =rememberCoroutineScope()
+    Column(modifier = modifier.padding(horizontal = 5.dp)) {
+        if(!windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+            IconButton({coroutineScope.launch { vm.irParaListaDeProdutosSelecionados() }}) {
+                Icon(painterResource(R.drawable.baseline_arrow_back_24), null)
+            }
+        BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,windowSize)
+        LazyColumn {
+            stickyHeader{
+                Cabesalho(windowSize)
+            }
+            when(estadosDeLoad.value){
+                is EstadosDeLoad.Empty -> {
+                }
+                is EstadosDeLoad.Erro->{}
+                is EstadosDeLoad.load -> {
+                    items(count = 5) {
+                        ItemDelLoadTabelas()
+
+                    }}
+                is EstadosDeLoad.Caregado<*> -> {
+                    val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+                    items(items = lista.obj){
+                        ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()})
+                    }
+                }
+
+            }
+
+
+
+
+        }
+    }
+
+
+}
+
+@Composable
 fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
     val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
     Column(modifier = modifier.padding(horizontal = 5.dp).fillMaxWidth(0.4f)) {
-        BaraDePesquisaProdutos(modifier = Modifier.fillMaxWidth().padding(vertical = 5.5.dp, horizontal = 5.dp),vm = vm)
+        BaraDePesquisaProdutos(modifier = Modifier.fillMaxWidth().padding(vertical = 5.5.dp, horizontal = 5.dp),vm = vm,windowSize)
         LazyColumn {
             stickyHeader{
                 Cabesalho(windowSize)
@@ -167,7 +212,7 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequis
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelProdutos){
+private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelProdutos,windowSizeClass: WindowSizeClass){
     val coroutineScope =rememberCoroutineScope()
     val estadoDaBara= remember { mutableStateOf(false) }
     val texto =remember { mutableStateOf("") }
@@ -175,7 +220,7 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
     SearchBar(modifier = modifier,
         inputField = { SearchBarDefaults.InputField(query = texto.value,
             onQueryChange = {texto.value=it
-
+                            coroutineScope.launch { vm.mudarPesquisa(Pesquisa(it)) }
             },
             onSearch = {
 
@@ -188,9 +233,44 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
                 Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
         expanded = estadoDaBara.value,
         onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        val pesquisa =vm.pesquisaDeProduto.collectAsState(emptyList())
         LazyColumn {
-            items(count = 0) {
+         items(items = pesquisa.value) {
+             ItemProduto(windowSize=windowSizeClass, produto = it, acaoMostrarProduto = {id->vm.mostraDescricao(id)}, acaoFormatacao = {it.toString().formatarPreco()})
+         }
+        }
+    }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass){
+    val coroutineScope =rememberCoroutineScope()
+    val estadoDaBara= remember { mutableStateOf(false) }
+    val texto =remember { mutableStateOf("") }
+    //val pesquisa =vm.fluxoDePesquisa.collectAsState(emptyList())
+    SearchBar(modifier = modifier,
+        inputField = { SearchBarDefaults.InputField(query = texto.value,
+            onQueryChange = {texto.value=it
+            coroutineScope.launch { vm.mudarPesquisa(Pesquisa(it)) }
+            },
+            onSearch = {
+                coroutineScope.launch { vm.mudarPesquisa(Pesquisa(it)) }
+
+            },
+            expanded = estadoDaBara.value,
+            onExpandedChange = {estadoDaBara.value=it},
+            placeholder = {Text("Pesquisar")},
+            leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
+            trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
+                Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+        expanded = estadoDaBara.value,
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        val pesqisa =vm.pesquisaProdutos.collectAsState(emptyList())
+        LazyColumn {
+            items(items = pesqisa.value) {
+               ItemProduto(windowSize = windowSizeClass, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()})
             }
         }
     }

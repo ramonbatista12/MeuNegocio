@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoCep
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoCnpj
@@ -36,12 +37,13 @@ import com.example.meunegociomeunegocio.repositorioRom.Telefone
 import com.example.meunegociomeunegocio.viewModel.EstagiosDeCadastroClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCadastroDeCliente
 import kotlinx.coroutines.launch
+import java.nio.file.WatchEvent
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CadastroCompat(vm: ViewModelCadastroDeCliente,acaoDeVoltar:()->Unit){
      val estagios=vm.estagio.collectAsStateWithLifecycle()
-    Scaffold (snackbarHost = {SnackbarHost(vm.snackbarHostState)}){
+       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         when(estagios.value){
             is EstagiosDeCadastroClientes.Nome -> {
                 CadastraCliente(vm=vm, acaoDevoutar =  acaoDeVoltar)
@@ -53,8 +55,9 @@ fun CadastroCompat(vm: ViewModelCadastroDeCliente,acaoDeVoltar:()->Unit){
                 CadastraTelefone(vm)
             }
         }
+           SnackbarHost(vm.snackbarHostState)
+}
 
-    }
 
 
 
@@ -76,14 +79,14 @@ private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Uni
 
     }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Cadastro de cliente")
+        Text("Cadastro de cliente", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = nome, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.8f), label = {Text("Nome")})
+        OutlinedTextField(state = nome, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f), label = {Text("Nome")})
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = cpf, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.8f), label = {Text("Cpf")},
+        OutlinedTextField(state = cpf, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f), label = {Text("Cpf")},
                           inputTransformation = FormatoCpf() )
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = cnpj, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.8f), label = {Text("Cnpj")}, inputTransformation = FormatoCnpj())
+        OutlinedTextField(state = cnpj, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f), label = {Text("Cnpj")}, inputTransformation = FormatoCnpj())
 
         Box(Modifier.fillMaxWidth()) {
             Button(onClick = acaoDevoutar, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
@@ -113,16 +116,16 @@ private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Un
         }
     }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Cadastro de telefone")
-        Spacer(Modifier.padding(10.dp))
-        OutlinedTextField(state = telefone, label = {Text("Numero do telefone")}, modifier = Modifier.fillMaxWidth(0.8f),
+        Text("Cadastro de telefone", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
+
+        OutlinedTextField(state = telefone, label = {Text("Numero do telefone")}, modifier = Modifier.fillMaxWidth(0.98f),
                           inputTransformation = FormatoTelefone())
-        Spacer(Modifier.padding(10.dp))
+        Spacer(Modifier.padding(5.dp))
 
 
 
-        Box(Modifier.fillMaxWidth()) {
-            Button(onClick = {vm.estagioDeCadastroAnterior()}, modifier = Modifier.align(Alignment.CenterStart).padding(20.dp)
+        Box(Modifier.fillMaxWidth().padding(bottom = 20.dp, start = 20.dp, end = 20.dp)) {
+            Button(onClick = {vm.estagioDeCadastroAnterior()}, modifier = Modifier.align(Alignment.CenterStart)
             ) {
                 Text("Endereco")
             }
@@ -167,20 +170,20 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
         }
     }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Cadastro de Endereco")
-        OutlinedTextField(state = rua, label = {Text("Rua")}, modifier = Modifier.fillMaxWidth(0.8f))
+        Text("Cadastro de Endereco", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
+        OutlinedTextField(state = rua, label = {Text("Rua")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = numero, label = {Text("Numero")}, modifier = Modifier.fillMaxWidth(0.8f))
+        OutlinedTextField(state = numero, label = {Text("Numero")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = cidade, label = {Text("Cidade")}, modifier = Modifier.fillMaxWidth(0.8f))
+        OutlinedTextField(state = cidade, label = {Text("Cidade")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = estado, label = {Text("Rstado")}, modifier = Modifier.fillMaxWidth(0.8f))
+        OutlinedTextField(state = estado, label = {Text("Rstado")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = cep, label = {Text("Cep")}, modifier = Modifier.fillMaxWidth(0.8f),inputTransformation = FormatoCep())
+        OutlinedTextField(state = cep, label = {Text("Cep")}, modifier = Modifier.fillMaxWidth(0.98f),inputTransformation = FormatoCep())
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = bairo, label = {Text("Bairo")}, modifier = Modifier.fillMaxWidth(0.8f))
+        OutlinedTextField(state = bairo, label = {Text("Bairo")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = complemento, label = {Text("Complemento")}, modifier = Modifier.fillMaxWidth(0.8f))
+        OutlinedTextField(state = complemento, label = {Text("Complemento")}, modifier = Modifier.fillMaxWidth(0.98f))
 
 
 
