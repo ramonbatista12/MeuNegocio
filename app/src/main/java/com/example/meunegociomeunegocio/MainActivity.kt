@@ -6,27 +6,13 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.safeGesturesPadding
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -34,15 +20,11 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.componetesMain.BaraLateral
 import com.example.meunegociomeunegocio.componetesMain.BarraInferior
 import com.example.meunegociomeunegocio.componetesMain.BotaoFlutuante
-import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.Navigraf
-import com.example.meunegociomeunegocio.repositorioRom.EntidadeClientes
-import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.ui.theme.MeuNegocioMeunegocioTheme
 import com.example.meunegociomeunegocio.viewModel.ViewModelMain
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -86,8 +68,8 @@ class MainActivity : ComponentActivity() {
                         windowSize=windowSizeClass,
                         modifier = Modifier.fillMaxSize(),
                         avisoDeDestino = {mainViewModel.atualizaEstadoSelecaoBarasNavegaveis(it)},
-                        acaoMostrarBotaoDeAdicionar = {mainViewModel.mostraBOtaoDeAdicao()},
-                        acaoOcultarBotaoDeAdicionar = {mainViewModel.ocultarBOtaoDeAdicao()}
+                        acaoMostrarBotaoDeAdicionar = {mainViewModel.mostraBotaoDeAdicao()},
+                        acaoOcultarBotaoDeAdicionar = {mainViewModel.ocultarBotaoDeAdicao()}
                         )
 
                 }

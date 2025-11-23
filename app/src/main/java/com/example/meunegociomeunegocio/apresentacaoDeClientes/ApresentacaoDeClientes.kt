@@ -41,9 +41,9 @@ private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modif
 
 @Composable
 private fun ListaDeClientesExpandida(modifier: Modifier= Modifier,vm: ViewModelCliente,windowSizeClass: WindowSizeClass){
-    Row(modifier = modifier) {
+    Row(modifier = modifier.padding(horizontal = 5.dp)) {
         ListaDeClientes(Modifier.fillMaxWidth(0.4f), vm = vm)
-        VerticalDivider(Modifier.padding(horizontal = 5.dp))
+        VerticalDivider(Modifier.padding(horizontal = 15.dp))
         DadosDeClientesExpandido(vm, windowSizeClass = windowSizeClass, modifier = Modifier.fillMaxWidth(0.4f))
 
     }

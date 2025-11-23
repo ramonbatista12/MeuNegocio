@@ -11,40 +11,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import com.example.meunegociomeunegocio.R
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavDestination
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.navegacao.DestinosDeNavegacao
 import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import com.example.meunegociomeunegocio.viewModel.ViewModelMain
-import kotlinx.coroutines.launch
 
 
 @Composable
 fun BotaoFlutuante(vm: ViewModelMain,acaoDeNavegacao: (DestinosDeNavegacao) -> Unit){
 
     val estadoDaBara =vm.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
-    val ocultarBotao=vm.ocultarBoraoDeAdicao.collectAsStateWithLifecycle()
+    val ocultarBotao=vm.ocultarBotaoDeAdicao.collectAsStateWithLifecycle()
     if(!ocultarBotao.value)
     FloatingActionButton(onClick = {
         when(estadoDaBara.value){
@@ -115,7 +106,7 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,
                                         modifier: Modifier=Modifier,
                                         vm: ViewModelMain){
     val estadoDaBara=vm.estadoSelecaoBarasNavegaveis.collectAsStateWithLifecycle()
-    val ocultarBotao =vm.ocultarBoraoDeAdicao.collectAsStateWithLifecycle()
+    val ocultarBotao =vm.ocultarBotaoDeAdicao.collectAsStateWithLifecycle()
     when{
         windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)->{
             LaunchedEffect(Unit) {

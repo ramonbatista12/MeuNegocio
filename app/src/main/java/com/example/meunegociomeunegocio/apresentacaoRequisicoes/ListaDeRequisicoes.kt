@@ -98,7 +98,7 @@ private fun  ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequis
     Row(modifier = Modifier.fillMaxWidth()) {
         Lista(modifier= Modifier.fillMaxWidth(0.4f),vm,windowSizeClass = windowSizeClass, acao = { vm.mudarId(it)
                                                                             vm.mostrarRequisicao(it) })
-        VerticalDivider(Modifier.padding(horizontal = 10.dp))
+        VerticalDivider(Modifier.padding(horizontal = 15.dp))
         ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
 
     }

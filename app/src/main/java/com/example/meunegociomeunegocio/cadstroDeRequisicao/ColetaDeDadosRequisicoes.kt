@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.internal.isLiveLiteralsEnabled
@@ -88,18 +90,23 @@ private fun SelecaoDeClientes(vm: ViewModelCriarRequisicoes,windowSizeClass: Win
 
 @Composable
 private fun SelecaoDeClientesExpandido(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Nome(vm,{},modifier = Modifier.fillMaxWidth(0.4f))
+        VerticalDivider(Modifier.padding(horizontal = 15.dp))
+        ListaDeSelecaoClientes(vm,windowSizeClass,modifier = Modifier.fillMaxWidth(0.4f))
+    }
 }
 @Composable
 private fun SelecaoDeClientesCompat(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass,acaoDeVOutar: () -> Unit){
     val selecaoDeClientes =vm.selecaoDeClientes.collectAsStateWithLifecycle()
     when(selecaoDeClientes.value){
-        is SelecaoDeClientes.Nome -> {Nome(vm, acaoDeVOutar = acaoDeVOutar)}
-        is SelecaoDeClientes.ListaDeSelecao -> {ListaDeSelecaoClientes(vm)}
+        is SelecaoDeClientes.Nome -> {Nome(vm, acaoDeVOutar = acaoDeVOutar,modifier = Modifier.fillMaxWidth())}
+        is SelecaoDeClientes.ListaDeSelecao -> {ListaDeSelecaoClientes(vm,windowSizeClass,modifier = Modifier.fillMaxWidth())}
     }
 
 }
 @Composable
-private fun Nome (vm: ViewModelCriarRequisicoes,acaoDeVOutar: () -> Unit){
+private fun Nome (vm: ViewModelCriarRequisicoes,acaoDeVOutar: () -> Unit,modifier: Modifier= Modifier){
     val nome=vm.clienteSelecionado.collectAsStateWithLifecycle()
     val state =rememberTextFieldState()
     val corotine=rememberCoroutineScope()
@@ -107,7 +114,7 @@ private fun Nome (vm: ViewModelCriarRequisicoes,acaoDeVOutar: () -> Unit){
         if(nome.value!=null)
          state.setTextAndPlaceCursorAtEnd(nome.value!!.second)
     }
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(5.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(5.dp)) {
         Text(text = "Selecao de Clientes", Modifier.padding(top = 25.dp, bottom = 10.dp), fontSize = 25.sp, textAlign = TextAlign.Justify)
         NomeCliente(vm = vm,state = state, acaoSelecionarCliente = {corotine.launch{vm.irParaTelaDeSelecaoDeClientes()}}, modifier = Modifier.fillMaxWidth(0.98f))
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -123,10 +130,11 @@ private fun Nome (vm: ViewModelCriarRequisicoes,acaoDeVOutar: () -> Unit){
 }
 
 @Composable
-private fun ListaDeSelecaoClientes(vm: ViewModelCriarRequisicoes){
+private fun ListaDeSelecaoClientes(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass,modifier: Modifier=Modifier){
     val coroutineScope =rememberCoroutineScope()
     Column {
-        Box(modifier = Modifier.fillMaxWidth()){
+        Box(modifier = modifier){
+            if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
             IconButton(onClick = { coroutineScope.launch{vm.irparaTelaDeVisualizacaoDeNomeDeCliente()} }) {
                 Icon(painterResource(R.drawable.baseline_arrow_back_24), null)
             }
@@ -141,11 +149,19 @@ private fun ListaDeSelecaoClientes(vm: ViewModelCriarRequisicoes){
 @Composable
 private fun SelecaoDeProdutos(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass){
      when{
-         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{}
+         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{SelecaoDeProdutosEspandido(vm,windowSizeClass)}
          else -> SelecaoDeProdutosCompat(vm,windowSizeClass)
 
      }
 
+}
+@Composable
+private fun SelecaoDeProdutosEspandido(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass){
+    Row(modifier = Modifier.fillMaxWidth()) {
+        ListaDeProdutosSelecionados(vm,windowSizeClass, modifier = Modifier.fillMaxWidth(0.4f))
+        VerticalDivider(Modifier.padding(horizontal = 15.dp))
+        ListaDeProdutos(modifier = Modifier,vm = vm, windowSize = windowSizeClass)
+    }
 }
 @Composable
 private fun SelecaoDeProdutosCompat(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass){
@@ -165,11 +181,11 @@ private fun SelecaoDeProdutosCompat(vm: ViewModelCriarRequisicoes,windowSizeClas
 
 }
 @Composable
-private fun ListaDeProdutosSelecionados(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass){
+private fun ListaDeProdutosSelecionados(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass,modifier: Modifier=Modifier){
     val coroutineScope =rememberCoroutineScope()
     val  produtosEquantidades=vm.produtosSelecionado.collectAsStateWithLifecycle()
     val produto = remember { mutableStateOf<ProdutoSelecionado>(ProdutoSelecionado(0,"Agua com gaz",1)) }
-    Column {
+    Column(modifier = modifier) {
     Text(text = "Seleção produtos/Serviços", fontSize = 25.sp , textAlign = TextAlign.Justify,modifier= Modifier.align(Alignment.CenterHorizontally).padding(top = 20.dp, bottom = 10.dp, start = 5.dp, end = 5.dp))
 
     LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -27,7 +27,7 @@ class TesteValidacaoEnderecos {
         )
         enderecosErrados.forEach {
             try {
-                aux.validarEndereco(it)
+                aux.validarEndereco(it,0)
             }catch (e: Exception){
                 println(e.message)
             }

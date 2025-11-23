@@ -15,7 +15,7 @@ class TesteValidacaoTelefone {
 
         invalidos.forEach {
             try {
-                aux.validarTelefone(it)
+                aux.validarTelefone(it,0)
             }catch (e: Exception){
                 println(e.message.toString())
             }

@@ -71,11 +71,11 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
         if(!telefoneAdicionado.value)
             try {
                 adicionarTelefone(telefone.value)
-                enderecoAdicionado.emit(true)
+                telefoneAdicionado.emit(true)
             }catch (e: Exception){
                 coroutineScope.launch {snackbarHostState.showSnackbar(e.message.toString())}
                 estagios.irAoEstagio(EstagiosDeCadastroClientes.Telefone)
-                enderecoAdicionado.emit(false)
+                telefoneAdicionado.emit(false)
                 return
             }
             coroutineScope.launch {snackbarHostState.showSnackbar("Dados foram salvos no banco de dados")
@@ -113,14 +113,14 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
 }
 
 class AuxiliarValidacaoDadosDeClientes{
-    suspend fun  validarCliente(cliente: Cliente?): Cliente{
+     fun  validarCliente(cliente: Cliente?): Cliente{
        if(cliente==null) throw IllegalArgumentException("Cliente nao pode estar vasio")
        val nome= validarNome(cliente.nome)
        val cpf =  validarCPF(cliente.cpf)
        val cnpj =  validarCNPJ(cliente.cnpj)
        return Cliente(0,nome=nome,cpf =cpf, cnpj = cnpj)
     }
-    suspend fun validarEndereco(endereco: Endereco?,id: Int): Endereco{
+     fun validarEndereco(endereco: Endereco?,id: Int): Endereco{
         if(endereco==null) throw IllegalArgumentException("Endereco esta vasio e e opcional e nao sera adicionado")
         val rua =validarRua(endereco.rua)
         val numero =validarNumero(endereco.numero)
@@ -135,10 +135,10 @@ class AuxiliarValidacaoDadosDeClientes{
         if(string==null) return string
         if(string.isBlank()) return null
         if(string.length!=18) throw IllegalArgumentException("CNPJ invalido pois nao conten o numero coreto de digitos")
-        if(!string.matches(Regex("\\d{2}.\\d{3}.\\d{3}/\\d{4}-\\d{2}"))) throw IllegalArgumentException("CNPJ invalido pois nao esta no formato correto")
+        if(!string.matches(Regex("\\d{2}\\.\\d{3}\\s.\\d{3}/\\d{4}-\\d{2}"))) throw IllegalArgumentException("CNPJ invalido pois nao esta no formato correto")
         return string
     }
-    suspend fun validarTelefone(telefone: Telefone?,id: Int): Telefone{
+     fun validarTelefone(telefone: Telefone?,id: Int): Telefone{
         if(telefone==null) throw IllegalArgumentException("Telefone nao pode estar vasio")
         val ddd=validarDDD(telefone.ddd)
         val celular=validarCelular(telefone.numero)
@@ -150,49 +150,49 @@ class AuxiliarValidacaoDadosDeClientes{
         if(string==null) return string
         if(string.isBlank()) return null
         if(string.length!=14) throw IllegalArgumentException("CPF invalido pois nao conten o numero coreto de digitos  ")
-        if(!string.matches(Regex("\\d{3}.\\d{3}.\\d{3}-\\d{2}"))) throw IllegalArgumentException("CPF invalido pois nao esta no formato correto")
+        if(!string.matches(Regex("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"))) throw IllegalArgumentException("CPF invalido pois nao esta no formato correto")
         return string
     }
 
-    private suspend fun validarNome(nome: String): String{
+    private  fun validarNome(nome: String): String{
        if(nome.isBlank()) throw IllegalArgumentException("Nome nao pode estar vasio")
        return nome
     }
-    private suspend fun validarRua(string: String): String{
+    private  fun validarRua(string: String): String{
         if(string.isBlank()) throw IllegalArgumentException("Rua nao pode estar vasia")
     return string
     }
-    private suspend fun validarNumero(string: String): String{
+    private  fun validarNumero(string: String): String{
         if(string.isBlank()) throw IllegalArgumentException("Numero nao pode estar vasio")
         if(string.contains(Regex("[a-zA-Z]"))) throw IllegalArgumentException("Numero nao pode conter letras caso seja nessesario adicione um complemento ")
       return string
     }
 
 
-    private suspend fun validarEstado(string: String): String{
+    private  fun validarEstado(string: String): String{
         if(string.isBlank()) throw IllegalArgumentException("Estado nao pode estar vasio")
         return string
     }
-    private suspend fun validarCidade(string: String): String{
+    private  fun validarCidade(string: String): String{
          if(string.isBlank()) throw IllegalArgumentException("Cidade nao pode estar vasia")
         return string
     }
-    private suspend fun validarBairo(string: String): String{
+    private  fun validarBairo(string: String): String{
         if(string.isBlank()) throw IllegalArgumentException("Bairro nao pode estar vasio")
         return string
     }
-    private suspend fun validarCep(string:String): String{
+    private  fun validarCep(string:String): String{
         if (string.isBlank()) throw IllegalArgumentException("Cep nao pode ser vasio")
         if(!string.matches(Regex("\\d{5}-\\d{3}"))) throw IllegalArgumentException("Cep nao posui o formato valido ")
         return string
     }
 
-    private suspend fun validarDDD(string: String): String{
+    private  fun validarDDD(string: String): String{
         if(string.isBlank()) throw IllegalArgumentException("DDD nao pode estar vasio")
         if (!string.matches(Regex("\\d{2}"))) throw IllegalArgumentException("DDD nao posui o formato valido e nesesario que seja dois digitos")
         return string
     }
-    private suspend fun validarCelular(string: String):String{
+    private  fun validarCelular(string: String):String{
         if(string.isBlank()) throw IllegalArgumentException("Celular nao pode estar vasio")
         if (!string.matches(Regex("\\d{5}-\\d{4}"))) throw IllegalArgumentException("Numero nao posui o formato valido e nesesario que tenha 9 digitos")
         return string

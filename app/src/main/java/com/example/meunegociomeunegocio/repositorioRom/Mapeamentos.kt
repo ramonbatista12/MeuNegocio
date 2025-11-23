@@ -1,5 +1,8 @@
 package com.example.meunegociomeunegocio.repositorioRom
 
+import com.example.meunegociomeunegocio.apresentacaoDeClientes.DadosDeClientes
+
+
 data class Cliente(val id: Int, val nome: String, val cpf: String?, val cnpj: String?)
 data class Telefone(val id: Int,val idCli:Int,val ddd:String,val numero: String)
 data class Endereco(val id: Int,val idCli:Int,val cidade:String,val estado:String,val bairro:String,val complemento:String,val rua:String,val numero:String,val cep: String)
@@ -19,5 +22,3 @@ sealed class EstadoRequisicao(val id: Int, val descricao: String){
     object Confirmado: EstadoRequisicao(2,"Confirmado")
     object Entregue: EstadoRequisicao(4,"Entregue")
 }
-
-

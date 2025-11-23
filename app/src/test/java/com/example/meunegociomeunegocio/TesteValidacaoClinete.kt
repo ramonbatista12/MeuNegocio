@@ -10,7 +10,7 @@ class TesteValidacaoClinete {
         val aux = AuxiliarValidacaoDadosDeClientes()
         val clientesErrados = listOf(
             // 1. Nome em branco
-            Cliente(id = 0, nome = "   ", cpf = "123.456.789-00", cnpj = null),
+            Cliente(id = 0, nome = "virgula no lugar de ponto", cpf = "123,456,789-00", cnpj = null),
 
             // 2. CPF com tamanho incorreto
             Cliente(id = 0, nome = "Empresa Válida", cpf = "123.456.789-0", cnpj = null),
