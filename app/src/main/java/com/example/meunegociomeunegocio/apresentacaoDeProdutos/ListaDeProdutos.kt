@@ -131,7 +131,10 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelCriarRequisicoes, 
                 is EstadosDeLoad.Caregado<*> -> {
                     val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
                     items(items = lista.obj){
-                        ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()})
+                        ItemProduto(windowSize=windowSize, produto = it,
+                                    acaoSelecionarProduto = {id,nm->
+                                        coroutineScope.launch {vm.selecionarProduto(id,nm)
+                                                               vm.irParaListaDeProdutosSelecionados()} }, acaoFormatacao = {it.toString().formatarPreco()})
                     }
                 }
 
@@ -232,9 +235,13 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
             trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                 Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
         expanded = estadoDaBara.value,
-        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
+        colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background) ){
         val pesquisa =vm.pesquisaDeProduto.collectAsState(emptyList())
         LazyColumn {
+            stickyHeader {
+                Cabesalho(windowSizeClass)
+            }
          items(items = pesquisa.value) {
              ItemProduto(windowSize=windowSizeClass, produto = it, acaoMostrarProduto = {id->vm.mostraDescricao(id)}, acaoFormatacao = {it.toString().formatarPreco()})
          }
@@ -266,9 +273,13 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelCr
             trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                 Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
         expanded = estadoDaBara.value,
-        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
+        colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background) ){
         val pesqisa =vm.pesquisaProdutos.collectAsState(emptyList())
         LazyColumn {
+            stickyHeader {
+                Cabesalho(windowSizeClass)
+            }
             items(items = pesqisa.value) {
                ItemProduto(windowSize = windowSizeClass, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()})
             }
@@ -281,7 +292,8 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelCr
 private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier,
                         produto: ProdutoServico ,
                         acaoMostrarProduto:(id:Int)->Unit= {},
-                        acaoFormatacao:(preco:Double)->String={""}){
+                        acaoFormatacao:(preco:Double)->String={""},
+                        ){
 
     val expandidido = remember{mutableStateOf(false)}
     LaunchedEffect(windowSize) {
@@ -342,6 +354,71 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
     }
 }
 
+@Composable
+private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier,
+                        produto: ProdutoServico ,
+                        acaoSelecionarProduto:(id:Int,nome:String)->Unit= {id,nm->},
+                        acaoFormatacao:(preco:Double)->String={""},
+){
+
+    val expandidido = remember{mutableStateOf(false)}
+    LaunchedEffect(windowSize) {
+        Log.d("teste","teste windowSize clas mudo")
+        if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND))
+            Log.d("texte","window size class medio")
+        if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+            Log.d("texte","window size class expandido")
+    }
+
+    Card(modifier= Modifier.fillMaxWidth().height(if(expandidido.value) 180.dp else 70.dp).padding(top = 5.dp, start = 3.dp, end = 3.dp).clickable(onClick = {acaoSelecionarProduto(produto.id,produto.nome) }),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+        Box(modifier = Modifier.fillMaxSize()){
+
+
+            Row(Modifier.padding(top = 3.dp, start = 5.dp, end = 5.dp).align(if(!expandidido.value)Alignment.CenterStart else Alignment.TopStart)) {
+                when{
+                    windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)|| windowSize.isWidthAtLeastBreakpoint(
+                        WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->Text(produto.nome, maxLines = 2,modifier=Modifier.width(150.dp), overflow = TextOverflow.Ellipsis)
+                    else->Text(produto.nome, maxLines = 2,modifier=Modifier.width(70.dp), overflow = TextOverflow.Ellipsis)
+                }
+
+                Spacer(Modifier.padding(10.dp))
+                Text( acaoFormatacao(produto.preco.toDouble()), Modifier.width(70.dp))
+                Spacer(Modifier.padding(10.dp))
+                if(windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)||windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+                    Text(produto.descrisao, maxLines = 2, modifier = Modifier.fillMaxWidth().padding(end = 90.dp), overflow = TextOverflow.Ellipsis)
+                else
+                    Text(produto.descrisao, maxLines = 1, modifier = Modifier.width(90.dp), overflow = TextOverflow.Ellipsis)
+
+
+
+            }
+            FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
+                IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
+                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
+                }
+
+                IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
+                    Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
+                }
+                /*  IconButton(onClick = {expandidido.value=!expandidido.value}, modifier = Modifier.size(30.dp)) {
+                      if(!expandidido.value)
+                          Icon(Icons.Outlined.ArrowDropDown, contentDescription = "")
+                      else
+                          Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "", modifier = Modifier)
+                  }*/
+            }
+            Column(Modifier.fillMaxWidth().align(Alignment.CenterStart).padding(top = 3.dp)){
+                AnimatedVisibility(visible = expandidido.value, Modifier){
+                    Column (Modifier.fillMaxWidth().padding(start = 5.dp)){
+                        Row {Text(if(produto.servico)"Serviço :" else "Produto :")
+                            Text(produto.nome)}
+                        Text(text = produto.descrisao, maxLines = 5,modifier =  Modifier)
+                    }}}
+            HorizontalDivider(Modifier.fillMaxWidth())
+        }
+    }
+}
 
 @Composable
 private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifier=Modifier,

@@ -18,7 +18,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -171,7 +173,8 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCl
                                                           trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                                                               Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
               expanded = estadoDaBara.value,
-              onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+              onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
+              colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background)){
                    LazyColumn {
                         items(items = pesquisa.value) {
                             ItemsDeClientes(it.cliente,{coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
@@ -206,7 +209,8 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCr
             trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
                 Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
         expanded = estadoDaBara.value,
-        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value}){
+        onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
+        colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background)){
         LazyColumn {
             items(items = pesquisa.value) {dataCli->
                 ItemsDeClientes(dataCli.cliente,{coroutineScope.launch { vm.selecionarCliente(Pair(dataCli.cliente.id,dataCli.cliente.nome))

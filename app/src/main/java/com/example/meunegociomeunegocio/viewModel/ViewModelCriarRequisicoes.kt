@@ -23,8 +23,10 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     private val _estadosDeSelecaoDeProdutos= MutableStateFlow<SelecaoDeProdutos>(SelecaoDeProdutos.ProdutosSelecionados)
     private val _estadosDeSelecaoDeClientes= MutableStateFlow<SelecaoDeClientes>(SelecaoDeClientes.Nome)
     private val pesquisa= MutableStateFlow<Pesquisa>(Pesquisa(""))
+    private val _observacoes =MutableStateFlow<Pair<String,String>?>(null)
     //Par<Int,Int> vai cepresentar o id do produto e a quantidade
     private val listIdProdutos= MutableStateFlow<List<ProdutoSelecionado>>(emptyList())
+    val observacoes=_observacoes
     val  produtosSelecionado=listIdProdutos
     val clienteSelecionado= MutableStateFlow<Pair<Int,String>?>(null)
     val pesquisaDeClientes=pesquisa.flatMapLatest {
@@ -54,9 +56,7 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
        this.pesquisa.emit(pesquisa)
     }
 
-    suspend fun mudarClienteSelecionado(cliente: Pair<Int,String>){
-        this.clienteSelecionado.emit(cliente)
-    }
+
     suspend fun irParaTelaDeSelecaoDeClientes(){
         _estadosDeSelecaoDeClientes.emit(SelecaoDeClientes.ListaDeSelecao)
     }
@@ -64,14 +64,9 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
         _estadosDeSelecaoDeClientes.emit(SelecaoDeClientes.Nome)
 
     }
-    suspend fun irParaAmostraDeProdutos(){
-        _estadosDeSelecaoDeProdutos.emit(SelecaoDeProdutos.ProdutosSelecionados)
-
-    }
     suspend fun irParaSelecaoDosProdutos(){
         _estadosDeSelecaoDeProdutos.emit(SelecaoDeProdutos.ListaDeProdutos)
     }
-
     suspend fun selecionarCliente(cliente: Pair<Int, String>){
         clienteSelecionado.emit(cliente)
     }
@@ -83,7 +78,33 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     }
     suspend fun prosimoEstadio()=gerenciador.proximo()
     suspend fun anteriorEstadio()=gerenciador.anterior()
-
+    suspend fun selecionarProduto(id:Int,nome:String){
+        val lista =listIdProdutos.value
+        val novoLista=lista.toMutableList()
+        novoLista.add(ProdutoSelecionado(id,nome,1))
+        listIdProdutos.emit(novoLista)
+    }
+    suspend fun diminuirQuantidade(index: Int){
+        val lista =listIdProdutos.value
+        val novoLista=lista.toMutableList()
+        novoLista[index]=novoLista[index].copy(id = novoLista[index].id,nome = novoLista[index].nome,quantidade = novoLista[index].quantidade-1)
+        listIdProdutos.emit(novoLista)
+    }
+    suspend fun almentarQuantidade(index: Int){
+        val lista =listIdProdutos.value
+        val novoLista=lista.toMutableList()
+        novoLista[index]=novoLista[index].copy(id = novoLista[index].id,nome = novoLista[index].nome,quantidade = novoLista[index].quantidade+1)
+        listIdProdutos.emit(novoLista)
+    }
+    suspend fun removereProduto(p: ProdutoSelecionado){
+        val lista =listIdProdutos.value
+        val novoLista=lista.toMutableList()
+        novoLista.remove(p)
+        listIdProdutos.emit(novoLista)
+    }
+    suspend fun salvarRequisicao(descricao: String,observacoes: String){
+        _observacoes.emit(Pair(descricao,observacoes))
+    }
 
 }
 
@@ -131,3 +152,4 @@ sealed class TelasInternas: Estagio{
 
 
 }
+

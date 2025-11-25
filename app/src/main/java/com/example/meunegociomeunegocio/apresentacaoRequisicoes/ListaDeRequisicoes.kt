@@ -191,9 +191,8 @@ private fun BarraDePesquisaRequisicoes(vm: ViewModelRequisicoes,modifier: Modifi
                                                          } )
 
                                                             },
-
-
-             modifier = modifier ){
+              modifier = modifier,
+              colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background)){
            val pesquisa=vm.fluxoDePesquisaRequisicoes.collectAsStateWithLifecycle(EstadosDeLoad.Empty)
            LazyColumn { 
                stickyHeader {

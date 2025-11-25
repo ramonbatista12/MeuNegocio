@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -185,11 +187,13 @@ private fun ListaDeProdutosSelecionados(vm: ViewModelCriarRequisicoes,windowSize
     val coroutineScope =rememberCoroutineScope()
     val  produtosEquantidades=vm.produtosSelecionado.collectAsStateWithLifecycle()
     val produto = remember { mutableStateOf<ProdutoSelecionado>(ProdutoSelecionado(0,"Agua com gaz",1)) }
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(bottom = 70.dp)) {
     Text(text = "Seleção produtos/Serviços", fontSize = 25.sp , textAlign = TextAlign.Justify,modifier= Modifier.align(Alignment.CenterHorizontally).padding(top = 20.dp, bottom = 10.dp, start = 5.dp, end = 5.dp))
 
-    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally,
+               modifier = Modifier.weight(0.1f)) {
         stickyHeader {
+            if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
             OutlinedCard(onClick = {coroutineScope.launch { vm.irParaSelecaoDosProdutos() }},
                          colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.background),
                          modifier = Modifier.padding(start = 10.dp ,end = 10.dp, bottom = 3.dp).fillMaxWidth(0.98f),) {
@@ -199,17 +203,26 @@ private fun ListaDeProdutosSelecionados(vm: ViewModelCriarRequisicoes,windowSize
                 }
             }
         }
-        items(count = 5) {
-            cardDeselecaoDeprodutosImpCompat(produto.value,windowSizeClass,
-                                             acaoDeRemoverProduto = {},
-                                             acaoDeAlmentarQuantidade = {produto.value=produto.value.copy(id = produto.value.id,nome = produto.value.nome,quantidade = produto.value.quantidade+1)},
-                                             acaoDeDiminuirQuantidade = {produto.value=produto.value.copy(id = produto.value.id,nome = produto.value.nome,quantidade = produto.value.quantidade-1)},
+        itemsIndexed(items = produtosEquantidades.value) {id,prod->
+            cardDeselecaoDeprodutosImpCompat(prod,windowSizeClass,
+                                             acaoDeRemoverProduto = {coroutineScope.launch {vm.removereProduto(prod)  }},
+                                             acaoDeAlmentarQuantidade = {coroutineScope.launch { vm.almentarQuantidade(id) }},
+                                             acaoDeDiminuirQuantidade = {coroutineScope.launch { vm.diminuirQuantidade(id) }},
                                              modifier = Modifier.align(Alignment.CenterHorizontally))
 
         }
+        if(produtosEquantidades.value.isEmpty()&&
+           windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) )
+          item {
+              Box(Modifier.fillMaxWidth(0.95f).height(70.dp)){
+                  Text("Nenhum produto selecionado", modifier = Modifier.align(Alignment.Center))
+
+              }
+          }
+
     }
 
-    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp,vertical = 5.dp)){
+    Box(modifier = Modifier.fillMaxWidth().padding(start = 20.dp,end=20.dp ,top =5.dp, bottom = 20.dp)){
         Button(onClick = { coroutineScope.launch { vm.anteriorEstadio() } }, modifier = Modifier.align(
             Alignment.CenterStart)){
             Text("Selecionar Cliente")
@@ -249,7 +262,7 @@ private fun cardDeselecaoDeprodutosImpCompat(produto: ProdutoSelecionado,
                 }
 
                 if(produto.quantidade==1)
-                    IconButton({acaoDeRemoverProduto}) {
+                    IconButton({acaoDeRemoverProduto()}) {
                         Icon(painterResource(R.drawable.baseline_delete_24),"remover")
 
                     }
@@ -267,6 +280,13 @@ private fun Observacoes(vm: ViewModelCriarRequisicoes){
     val descricao=rememberTextFieldState()
     val observacoes=rememberTextFieldState()
     val coroutineScope =rememberCoroutineScope()
+    val observacoesSalvas =vm.observacoes.collectAsStateWithLifecycle()
+    LaunchedEffect(observacoesSalvas.value) {
+        if(observacoesSalvas.value!=null) {
+            descricao.setTextAndPlaceCursorAtEnd(observacoesSalvas.value!!.first)
+            observacoes.setTextAndPlaceCursorAtEnd(observacoesSalvas.value!!.second)
+        }
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Observacoes", fontSize = 25.sp, textAlign = TextAlign.Justify, modifier = Modifier.padding(top = 20.dp, bottom = 10.dp, start = 5.dp, end = 5.dp).align(Alignment.CenterHorizontally))
          OutlinedTextField(state = descricao, label = { Text("Descricao")}, modifier = Modifier.fillMaxWidth(0.98f).padding(bottom = 10.dp, start = 5.dp, end = 5.dp))
