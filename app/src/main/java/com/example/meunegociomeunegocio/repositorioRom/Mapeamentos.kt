@@ -16,6 +16,7 @@ data class ProdutoProRequisicao(val Requisicao: Requisicao, val produtos: List<P
 data class Mudanca(val id: Int, val data: String, val idReq: Int, val idEstAntigo: Estado?, val idEstNovo: Estado)
 data class RequisicaoEProdutosRequeridos(val dadosDaRequisicao: DadosDaRequisicao,val produtos: List<ProdutoServico>)
 data class ProdutoRequisitado(val id: Int, val idProd:Int, val nomePrd: String, val qnt: Int, val preco: Float,val total:Float ,val produtoServico: Boolean)
+data class ProdutoRequisicao(val id: Int, val idReq: Int, val idProd: Int,val qnt: Int)
 sealed class EstadoRequisicao(val id: Int, val descricao: String){
     object Pendente: EstadoRequisicao(3,"Pendente")
     object Cancelado: EstadoRequisicao(1,"Cancelado")

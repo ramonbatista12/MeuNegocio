@@ -1,6 +1,10 @@
-package com.example.meunegociomeunegocio.apresentacaoRequisicoes
+ package com.example.meunegociomeunegocio.apresentacaoRequisicoes
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -16,9 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -27,22 +34,28 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
@@ -53,6 +66,7 @@ import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatarPreco
 import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
 import com.example.meunegociomeunegocio.repositorioRom.Mudanca
+import com.example.meunegociomeunegocio.utilitario.EstadoLoadObterUri
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import com.example.meunegociomeunegocio.viewModel.FiltroDePesquisaRequisicoes
 import com.example.meunegociomeunegocio.viewModel.ListaHistorico
@@ -70,7 +84,92 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
     else{
         ListaExpandida(windowSizeClass = windowSizeClass, vm = vm,modifier)
     }
+    SnackbarHost(vm.snackbarHostState)
 }
+
+@Composable
+private fun DialogoCriarPdf(vm: ViewModelRequisicoes){
+    val dialogoMontarPdf =vm.caixaDeDialogoCriarPdf.collectAsStateWithLifecycle()
+    val criarPdf= rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) {uri->
+
+      Log.d("criarPdf","valor da uri recebida= $uri")
+      vm.criarPdf(uri)
+    }
+    val estados =vm.estadosDeCriacaoDePdf.collectAsStateWithLifecycle(EstadoLoadObterUri.Iniciando)
+    LaunchedEffect(estados.value) {
+        if(estados.value== EstadoLoadObterUri.Sucesso){
+            vm.anunciarConclusao()
+            vm.fecharDialogo()
+        }
+    }
+    val textoInical ="Um arquivo PDF será gerado com os dados da requisição atual. Escolha onde deseja salvar o arquivo."
+    val textoErro="Houve um erro ao criar o arquivo. Você pode tentar novamente se quiser."
+    if(dialogoMontarPdf.value)
+    Dialog(onDismissRequest = {}) {
+        OutlinedCard(onClick = {},
+                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+                     modifier = Modifier.height(300.dp).width(450.dp)) {
+
+                 Box(modifier =Modifier.fillMaxSize().padding(5.dp) ){
+                 Column(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter) ){
+                     Text("Criar pdf", modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp), fontSize = 20.sp)
+                     HorizontalDivider(Modifier.padding(vertical = 5.dp))
+                     when(estados.value){
+                         is EstadoLoadObterUri.Criando -> {
+                             CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally).padding(20.dp).size(60.dp))
+                         }
+                         is EstadoLoadObterUri.Erro -> {Text(textoErro)}
+                         is EstadoLoadObterUri.Iniciando -> {Text(textoInical)}
+                         is EstadoLoadObterUri.Sucesso -> {}
+                     }
+                     }
+                     BotoesDialogo(vm = vm,
+                                   modifier = Modifier.align(Alignment.BottomCenter) ,
+                                   acaoDeProceguir = {criarPdf.launch("orcamento_numero_.pdf")},
+                                   acaoCancelar = {vm.fecharDialogo()})
+                 }
+
+        }
+    }
+}
+@Composable//
+private fun BotoesDialogo(vm: ViewModelRequisicoes,
+                          modifier: Modifier=Modifier,
+                          acaoDeProceguir:()-> Unit,
+                          acaoCancelar: () -> Unit
+){
+    val estadosDeCriacaoDePdf=vm.estadosDeCriacaoDePdf.collectAsStateWithLifecycle(EstadoLoadObterUri.Iniciando)
+    Box(modifier.fillMaxWidth()){
+        when(estadosDeCriacaoDePdf.value){
+            is EstadoLoadObterUri.Iniciando -> {
+                Button(onClick = {acaoCancelar()}, colors = ButtonDefaults.buttonColors(containerColor = Color.Red), modifier = Modifier.align(
+                    Alignment.CenterStart).padding(20.dp)) {
+                    Text(text = "Cancelar", color = Color.White)
+                }
+
+                Button(onClick = {acaoDeProceguir()}, colors = ButtonDefaults.buttonColors(containerColor = Color.Blue), modifier = Modifier.align(
+                    Alignment.CenterEnd).padding(20.dp)) {
+                    Text(text = "Ok", color = Color.White)
+                }
+            }
+            is  EstadoLoadObterUri.Erro->{
+                Button(onClick = {acaoCancelar()}, colors = ButtonDefaults.buttonColors(containerColor = Color.Red), modifier = Modifier.align(
+                    Alignment.CenterStart).padding(20.dp)) {
+                    Text(text = "Cancelar", color = Color.White)
+                }
+
+                Button(onClick = {acaoDeProceguir()}, colors = ButtonDefaults.buttonColors(containerColor = Color.Blue), modifier = Modifier.align(
+                    Alignment.CenterEnd).padding(20.dp)) {
+                    Text(text = "Tentar novamente", color = Color.White)
+                }
+            }
+            is EstadoLoadObterUri.Criando -> {}
+            is EstadoLoadObterUri.Sucesso -> {}
+        }
+
+    }
+}
+
 
 
 @Composable
@@ -92,7 +191,7 @@ private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoe
 }
 
 @Composable
-private fun  ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
+private fun   ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
 
     val telaInterna=vm.telaInternasRequisicoes.collectAsStateWithLifecycle()
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -257,7 +356,9 @@ private fun MenuFiltro(modifier: Modifier= Modifier,expanded: MutableState<Boole
 private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass){
         val requisicao=vm.fluxoDadosDeRequisicao.collectAsStateWithLifecycle(EstadosDeLoad.load)
         val estadoListaHistorico =vm.estadoListaHistorico.collectAsStateWithLifecycle(ListaHistorico.Lista)
-
+        LaunchedEffect(Unit) {
+            vm.abrirDialogo()
+        }
         when(requisicao.value){
             is EstadosDeLoad.Empty -> {}
             is EstadosDeLoad.Caregado<*> -> {
@@ -325,10 +426,14 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                     }
                     is ListaHistorico.Historico->{ListaDeEstados(vm)}
                 }
-            }}
+
+            }
+                DialogoCriarPdf(vm,)
+            }
             is EstadosDeLoad.load -> {}
             else -> {}
         }
+
 
 
 }

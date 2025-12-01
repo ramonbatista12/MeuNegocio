@@ -18,3 +18,5 @@ fun JuncaoLogsMudancaEstadoNovoEstadoAntigo.toMudancas(): Mudanca= Mudanca(id = 
 fun juncaoRequesicaoEstadoClinete.toDadosDaRequisicao(): DadosDaRequisicao = DadosDaRequisicao(requisicao = this.requisicao.toRequisicao(), estado = this.estado.toEstado(),cliente = this.cliente.toCliente())
 fun JuncaoClineteTelefoneEndereco.toDadosDeClientes(): DadosDeClientes= DadosDeClientes(this.cliente.toCliente(),this.telefones.map { it.toTelefone() },this.enderecos.map { it.toEndereco() })
 fun ProdutoSolicitado.toProdutoRequisitado(): ProdutoRequisitado= ProdutoRequisitado(id = this.id, idProd = this.idPrd, nomePrd = this.nomePrd, qnt = this.qnt, preco = this.preco, total = this.total, produtoServico = this.servico)
+fun EntidadeRequesicaoProduto.toProdutoRequisicao(): ProdutoRequisicao=ProdutoRequisicao(id = this.id, idReq = this.idReq, idProd = this.idProd, qnt = this.qnr)
+fun ProdutoRequisicao.toEntidadeRequesicaoProduto(): EntidadeRequesicaoProduto= EntidadeRequesicaoProduto(id=this.id, idReq = this.idReq, idProd = this.idProd, qnr = this.qnt)

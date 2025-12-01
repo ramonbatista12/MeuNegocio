@@ -1,23 +1,34 @@
 package com.example.meunegociomeunegocio.viewModel
 
+import android.net.Uri
+import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.meunegociomeunegocio.hillt.ModuloRom_ProviderCriadorPdfFactory
+import com.example.meunegociomeunegocio.pdf.CriadorDePfd
+import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
+import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
+import com.example.meunegociomeunegocio.utilitario.EstadoLoadObterUri
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.net.URI
 
 @HiltViewModel
-class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewModel() {
+class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositorio,private val pdf: CriadorDePfd): ViewModel() {
     private val Tag="ViewModelRequisicoes"
     private val coroutineScope=viewModelScope
     private val fluxoDeFiltros= MutableStateFlow<FiltroDePesquisaRequisicoes?>(null)
+    private val _caixaDeDialogoCriarPdf=MutableStateFlow(true)
+    private val _estadosDeCriacaoDePdf= MutableStateFlow<EstadoLoadObterUri>(EstadoLoadObterUri.Iniciando)
     val fluxoDeId= MutableStateFlow(0)
     val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao().map {
         if(it==null ||it.isEmpty()) EstadosDeLoad.Empty
@@ -79,7 +90,7 @@ class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewMod
                 EstadosDeLoad.Caregado(it)
         }
     }
-
+    val caixaDeDialogoCriarPdf= _caixaDeDialogoCriarPdf
     val valorTotalRequisicao= fluxoDeId.flatMapLatest{
         repositorio.custoTotalPorRequisicao(it).map{
             if(it==null)
@@ -89,6 +100,8 @@ class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewMod
 
 
         }}
+    val estadosDeCriacaoDePdf=_estadosDeCriacaoDePdf
+    val snackbarHostState = SnackbarHostState()
     fun mostrarRequisicao(id:Int){
 
         coroutineScope.launch {
@@ -126,6 +139,46 @@ class ViewModelRequisicoes@Inject constructor(repositorio: Repositorio): ViewMod
     fun limparFiltro(){
         coroutineScope.launch {
             fluxoDeFiltros.emit(null)
+        }
+    }
+    fun criarPdf(uri: Uri?){
+        coroutineScope.launch {
+            if(uri==null){
+                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Erro)
+                return@launch
+            }
+            val dadosDaRequisicao=repositorio.requisicaoPorId(fluxoDeId.value).first()
+            val listaDeProdutos=repositorio.produtoRequisitado(fluxoDeId.value).first()
+            _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Criando)
+            try{
+                if(dadosDaRequisicao!=null&&listaDeProdutos!=null)
+                pdf.create(uri,dadosDaRequisicao!!,listaDeProdutos)
+                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Sucesso)
+            }catch (e: Exception){
+                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Erro)
+                return@launch
+            }
+
+
+        }
+
+    }
+    fun abrirDialogo(){
+        coroutineScope.launch {
+            _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Iniciando)
+            _caixaDeDialogoCriarPdf.emit(true)
+        }
+
+    }
+    fun fecharDialogo(){
+        coroutineScope.launch{
+            _caixaDeDialogoCriarPdf.emit(false)
+        }
+    }
+
+    fun anunciarConclusao(){
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar("Pdf criado com sucesso")
         }
     }
 }

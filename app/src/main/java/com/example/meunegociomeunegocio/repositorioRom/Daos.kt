@@ -81,7 +81,7 @@ interface Daos{
    @Update
    suspend fun atualizarRequisicao(requisicao: EntidadeRequisicao)
    @Insert
-   suspend fun inserirRequisicao(requisicao: EntidadeRequisicao)
+   suspend fun inserirRequisicao(requisicao: EntidadeRequisicao): Long
    @Delete
    suspend fun apagarRequisicao(requisicao: EntidadeRequisicao)
    //querys logs de mudanca
@@ -106,8 +106,15 @@ interface Daos{
    suspend fun atualizarEstado(estado: EntidadeEstado)
    @Delete
    suspend fun apagarEstado(estado: EntidadeEstado)
-
-
+   //querys na tabela associativa requisicao produto
+   @Insert
+   suspend fun insertProdutosRequisitados(list: List<EntidadeRequesicaoProduto>)
+   @Query("delete from requisicao_produto_servico where id_req=:id")
+   suspend fun apagarProdutoPorRequisicao(id:Int)
+   @Update
+   suspend fun atualizarProdutoRequisicao(produto: EntidadeRequesicaoProduto)
+   @Delete
+   suspend fun excluitProdutoRequisitado(produto: EntidadeRequesicaoProduto)
 
 
 

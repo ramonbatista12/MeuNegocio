@@ -42,10 +42,12 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     suspend fun apagarProdutoServico(produto: ProdutoServico)=withContext(Dispatchers.IO) { dao.deletarProdutoServico(produto.toEntidadeProdutoServico())  }
     suspend fun atualizarProdutoServico(produto: ProdutoServico)=withContext(Dispatchers.IO) { dao.atualizarProdutoServico(produto.toEntidadeProdutoServico())}
     //acoes em requisicoes
-    suspend fun inserirRequisicao(requisicao: EntidadeRequisicao)=withContext(Dispatchers.IO) { dao.inserirRequisicao(requisicao) }
-    suspend fun atulizarRequisicao(requisicao: EntidadeRequisicao)=withContext(Dispatchers.IO) { dao.atualizarRequisicao(requisicao) }
-    suspend fun apagarRequisicao(requisicao: EntidadeRequisicao)=withContext(Dispatchers.IO) { dao.apagarRequisicao(requisicao)}
-    // acoes em estados
-
-
+    suspend fun inserirRequisicao(requisicao: Requisicao)=withContext(Dispatchers.IO) { dao.inserirRequisicao(requisicao.toEntidadeRequisicao()) }
+    suspend fun atulizarRequisicao(requisicao: Requisicao)=withContext(Dispatchers.IO) { dao.atualizarRequisicao(requisicao.toEntidadeRequisicao()) }
+    suspend fun apagarRequisicao(requisicao:Requisicao)=withContext(Dispatchers.IO) { dao.apagarRequisicao(requisicao.toEntidadeRequisicao())}
+    // acoes em requisicaoPRoduto
+    suspend fun inserirRequisicaoProduto(list: List<ProdutoRequisicao>)=withContext(Dispatchers.IO) { dao.insertProdutosRequisitados(list.map { it.toEntidadeRequesicaoProduto() }) }
+    suspend fun aparProdutoPorRequisicao(id:Int)=withContext(Dispatchers.IO) { dao.apagarProdutoPorRequisicao(id) }
+    suspend fun apagarProdutoRequisicao(produto: ProdutoRequisicao)=withContext(Dispatchers.IO) { dao.excluitProdutoRequisitado(produto.toEntidadeRequesicaoProduto())  }
+    suspend fun atualizarProdutoRequisicao(produto: ProdutoRequisicao)=withContext(Dispatchers.IO) { dao.atualizarProdutoRequisicao(produto.toEntidadeRequesicaoProduto())}
 }

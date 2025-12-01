@@ -58,5 +58,10 @@ object  ModuloRom{
     fun providerRepositorio(roomBd: RoomBd): Repositorio{
         return Repositorio(roomBd)
     }
+    @Provides
+    @Singleton
+    fun providerCriadorPdf(@ApplicationContext context: Context): com.example.meunegociomeunegocio.pdf.CriadorDePfd{
+        return com.example.meunegociomeunegocio.pdf.CriadorDePfd(context)
 
+    }
 }
