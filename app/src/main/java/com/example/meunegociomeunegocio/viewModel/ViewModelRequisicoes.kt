@@ -27,8 +27,9 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
     private val Tag="ViewModelRequisicoes"
     private val coroutineScope=viewModelScope
     private val fluxoDeFiltros= MutableStateFlow<FiltroDePesquisaRequisicoes?>(null)
-    private val _caixaDeDialogoCriarPdf=MutableStateFlow(true)
+    private val _caixaDeDialogoCriarPdf=MutableStateFlow(false)
     private val _estadosDeCriacaoDePdf= MutableStateFlow<EstadoLoadObterUri>(EstadoLoadObterUri.Iniciando)
+    private val _envioDeRequisicao = MutableStateFlow<Uri?>(null)
     val fluxoDeId= MutableStateFlow(0)
     val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao().map {
         if(it==null ||it.isEmpty()) EstadosDeLoad.Empty
@@ -102,6 +103,7 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
         }}
     val estadosDeCriacaoDePdf=_estadosDeCriacaoDePdf
     val snackbarHostState = SnackbarHostState()
+    val envioDerequisicao =_envioDeRequisicao
     fun mostrarRequisicao(id:Int){
 
         coroutineScope.launch {
@@ -154,6 +156,7 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
                 if(dadosDaRequisicao!=null&&listaDeProdutos!=null)
                 pdf.create(uri,dadosDaRequisicao!!,listaDeProdutos)
                 _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Sucesso)
+                _envioDeRequisicao.emit(uri)
             }catch (e: Exception){
                 _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Erro)
                 return@launch

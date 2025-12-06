@@ -1,5 +1,7 @@
  package com.example.meunegociomeunegocio.apresentacaoRequisicoes
 
+import android.content.Intent
+import android.content.Intent.ACTION_SEND
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -51,6 +53,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -89,7 +92,7 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
 
 @Composable
 private fun DialogoCriarPdf(vm: ViewModelRequisicoes){
-    val dialogoMontarPdf =vm.caixaDeDialogoCriarPdf.collectAsStateWithLifecycle()
+    val dialogoMontarPdf =vm.caixaDeDialogoCriarPdf.collectAsStateWithLifecycle(initialValue = false)
     val criarPdf= rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) {uri->
 
       Log.d("criarPdf","valor da uri recebida= $uri")
@@ -98,14 +101,17 @@ private fun DialogoCriarPdf(vm: ViewModelRequisicoes){
     val estados =vm.estadosDeCriacaoDePdf.collectAsStateWithLifecycle(EstadoLoadObterUri.Iniciando)
     LaunchedEffect(estados.value) {
         if(estados.value== EstadoLoadObterUri.Sucesso){
-            vm.anunciarConclusao()
+
             vm.fecharDialogo()
         }
+    }
+    LaunchedEffect(dialogoMontarPdf.value) {
+        Log.d("Dialogo pdf ","valor de dialogo mudou ${dialogoMontarPdf.value}")
     }
     val textoInical ="Um arquivo PDF será gerado com os dados da requisição atual. Escolha onde deseja salvar o arquivo."
     val textoErro="Houve um erro ao criar o arquivo. Você pode tentar novamente se quiser."
     if(dialogoMontarPdf.value)
-    Dialog(onDismissRequest = {}) {
+    Dialog(onDismissRequest = {vm.fecharDialogo()}) {
         OutlinedCard(onClick = {},
                      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                      modifier = Modifier.height(300.dp).width(450.dp)) {
@@ -125,7 +131,7 @@ private fun DialogoCriarPdf(vm: ViewModelRequisicoes){
                      }
                      BotoesDialogo(vm = vm,
                                    modifier = Modifier.align(Alignment.BottomCenter) ,
-                                   acaoDeProceguir = {criarPdf.launch("orcamento_numero_.pdf")},
+                                   acaoDeProceguir = {criarPdf.launch("orcamento_.pdf")},
                                    acaoCancelar = {vm.fecharDialogo()})
                  }
 
@@ -356,8 +362,23 @@ private fun MenuFiltro(modifier: Modifier= Modifier,expanded: MutableState<Boole
 private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass){
         val requisicao=vm.fluxoDadosDeRequisicao.collectAsStateWithLifecycle(EstadosDeLoad.load)
         val estadoListaHistorico =vm.estadoListaHistorico.collectAsStateWithLifecycle(ListaHistorico.Lista)
-        LaunchedEffect(Unit) {
-            vm.abrirDialogo()
+        val envioDasRequisicoes =vm.envioDerequisicao.collectAsStateWithLifecycle(null)
+        val  context =LocalContext.current
+        val intenteEnvioRequisicao=rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { }
+        LaunchedEffect(envioDasRequisicoes.value) {
+            if(envioDasRequisicoes.value!=null){
+               try{
+                   Log.d("ExibicaoDaRequisicao","lancando intent")
+                   val intent= Intent(ACTION_SEND)
+                   intent.type="application/pdf"
+                   intent.putExtra(Intent.EXTRA_STREAM,envioDasRequisicoes.value)
+                   intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                   intenteEnvioRequisicao.launch(Intent.createChooser(intent,"Enviar Arquivo"))
+               } catch (e: Exception){
+                   Log.d("ExibicaoDaRequisicao","erro ao enviar arquivo")
+               }
+
+            }
         }
         when(requisicao.value){
             is EstadosDeLoad.Empty -> {}
@@ -370,7 +391,7 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                     Icon(painterResource(R.drawable.baseline_arrow_drop_down_24),contentDescription = null,modifier=Modifier.size(25.dp))
                 }
                     NumeroDeRequisicoes(requisicao.obj.requisicao.id,modifier= Modifier.align(Alignment.Center))
-                 IconButton(onClick = {},modifier= Modifier.align(Alignment.CenterEnd)) {
+                 IconButton(onClick = {vm.abrirDialogo()},modifier= Modifier.align(Alignment.CenterEnd)) {
                      Icon(painter = painterResource(R.drawable.recibo_2_24), contentDescription = null,modifier=Modifier.size(20.dp))
                  }
 
