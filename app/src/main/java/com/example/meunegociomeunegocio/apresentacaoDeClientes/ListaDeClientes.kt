@@ -16,14 +16,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,13 +37,11 @@ import androidx.compose.ui.unit.sp
 import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.loads.LoadClientes
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
-import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.Pesquisa
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
 import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,24 +52,24 @@ fun ListaDeClientes(modifier: Modifier= Modifier,vm:ViewModelCliente){
         Log.d("ListaDeClientes","LaunchedEffect")
     }
     val estadoBaraDePesquisa =remember { mutableStateOf(false) }
-    val estadoDeLoad=vm.fluxoDeCliente.collectAsState(EstadosDeLoad.load)
+    val estadoDeLoad=vm.fluxoDeCliente.collectAsState(EstadosDeLoadCaregamento.load)
     Column(modifier=modifier) {
         BaraDePesquisaClientes(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm)
         LazyColumn(modifier= Modifier) {
             when(estadoDeLoad.value){
-                is EstadosDeLoad.load -> {
+                is EstadosDeLoadCaregamento.load -> {
                     items(count = 5) {
                         LoadClientes()
                     }
                 }
-                is EstadosDeLoad.Empty -> {
+                is EstadosDeLoadCaregamento.Empty -> {
                     item {
                     Text("Nenhum cliente encontrado")
 
                 }}
-                is EstadosDeLoad.Erro -> {}
-                is EstadosDeLoad.Caregado<*> -> {
-                    val lista=estadoDeLoad.value as EstadosDeLoad.Caregado<List<Cliente>>
+                is EstadosDeLoadCaregamento.Erro -> {}
+                is EstadosDeLoadCaregamento.Caregado<*> -> {
+                    val lista=estadoDeLoad.value as EstadosDeLoadCaregamento.Caregado<List<Cliente>>
                     items(lista.obj) {
                         ItemsDeClientes(it, acao = {coroutineScope.launch {  vm.mudarTelaVisualizada(TelasInternasDeClientes.DadosDoCliente(it))}})
                     }
@@ -96,24 +91,24 @@ fun ListaDeClientes(modifier: Modifier= Modifier,vm: ViewModelCriarRequisicoes){
         Log.d("ListaDeClientes","LaunchedEffect")
     }
     val estadoBaraDePesquisa =remember { mutableStateOf(false) }
-    val estadoDeLoad=vm.fluxoDeClientes.collectAsState(EstadosDeLoad.load)
+    val estadoDeLoad=vm.fluxoDeClientes.collectAsState(EstadosDeLoadCaregamento.load)
     Column(modifier=modifier) {
         BaraDePesquisaClientes(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,{ coroutineScope.launch { vm.irparaTelaDeVisualizacaoDeNomeDeCliente()}})
         LazyColumn(modifier= Modifier) {
             when(estadoDeLoad.value){
-                is EstadosDeLoad.load -> {
+                is EstadosDeLoadCaregamento.load -> {
                     items(count = 5) {
                         LoadClientes()
                     }
                 }
-                is EstadosDeLoad.Empty -> {
+                is EstadosDeLoadCaregamento.Empty -> {
                     item {
                         Text("Nenhum cliente encontrado")
 
                     }}
-                is EstadosDeLoad.Erro -> {}
-                is EstadosDeLoad.Caregado<*> -> {
-                    val lista=estadoDeLoad.value as EstadosDeLoad.Caregado<List<Cliente>>
+                is EstadosDeLoadCaregamento.Erro -> {}
+                is EstadosDeLoadCaregamento.Caregado<*> -> {
+                    val lista=estadoDeLoad.value as EstadosDeLoadCaregamento.Caregado<List<Cliente>>
                     items(lista.obj) {cli->
                         ItemsDeClientes(cli, acao = {coroutineScope.launch { vm.selecionarCliente(Pair(cli.id,cli.nome))
                                                                               vm.irparaTelaDeVisualizacaoDeNomeDeCliente()}})

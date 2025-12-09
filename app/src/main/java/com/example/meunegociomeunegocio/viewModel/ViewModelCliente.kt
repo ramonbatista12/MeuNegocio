@@ -6,11 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
 import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,19 +24,19 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
     val pesquisa= MutableStateFlow<Pesquisa?>(null)
     val fluxoDeCliente =repositorio.fluxoDeClientes().map {
 
-        if(it==null||it.size==0) EstadosDeLoad.Empty
-        else EstadosDeLoad.Caregado(it)
+        if(it==null||it.size==0) EstadosDeLoadCaregamento.Empty
+        else EstadosDeLoadCaregamento.Caregado(it)
     }
     val fluxoDeDadosDeClientesPainelExpandido=telaVisualizada.flatMapLatest{
         when(it){
             is TelasInternasDeClientes.DadosDoCliente -> {
                 repositorio.fluxoDadosDoCliente(it.idCliente).map {
-                    if(it==null)EstadosDeLoad.Empty
-                    else EstadosDeLoad.Caregado<DadosDeClientes>(it)
+                    if(it==null)EstadosDeLoadCaregamento.Empty
+                    else EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
                 }
             }
             else ->{
-                flowOf(EstadosDeLoad.Empty)
+                flowOf(EstadosDeLoadCaregamento.Empty)
             }
         }
     }
@@ -58,8 +56,8 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
         this.pesquisa.value=pesquisa
     }
     fun dadosDocliente(id:Int)=repositorio.fluxoDadosDoCliente(id).map {
-        if(it==null)EstadosDeLoad.Caregado<DadosDeClientes>(DadosDeClientes(Cliente(0,"","",""), emptyList(),emptyList())) //EstadosDeLoad.Empty
-        else EstadosDeLoad.Caregado<DadosDeClientes>(it)
+        if(it==null)EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(DadosDeClientes(Cliente(0,"","",""), emptyList(),emptyList())) //EstadosDeLoad.Empty
+        else EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
     }
 }
 

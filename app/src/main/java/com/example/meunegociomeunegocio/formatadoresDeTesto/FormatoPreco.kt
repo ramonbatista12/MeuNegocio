@@ -13,16 +13,25 @@ import java.util.Locale
 class FormatoPreco: InputTransformation {
     private val Tag="Formatacao de Preco"
     override fun TextFieldBuffer.transformInput() {
-
-        val textoLimpo = asCharSequence().replace(Regex("\\D"),"").toString()
-        val int=textoLimpo.toInt()
-        replace(0,length,int.toString())
-        Log.d(Tag,"texto limpo $textoLimpo texto setado ${asCharSequence().toString()} tamanho $length" )
-        if(length>2) insert(textoLimpo.length-2,",")
-        if(length==2) insert(0,"0,")
-        if(length==1)insert(0,"0,0")
-
+        val textoLimpo = asCharSequence().replace(Regex("\\D"),"").toString().toInt().toString()
+        val textoFormatado=when(textoLimpo.length){
+            1->"0,0${textoLimpo}"
+            2->"0,${textoLimpo}"
+            else ->{
+                val parteInteira=textoLimpo.substring(0,textoLimpo.length-2)
+                val parteDecimal=textoLimpo.substring(textoLimpo.length-2)
+                "$parteInteira,$parteDecimal"
+            }
+        }
+        replace(0,length,textoFormatado)
         placeCursorAtEnd()
 
     }
 }
+/*
+val int=textoLimpo.toInt()
+replace(0,length,int.toString())
+Log.d(Tag,"texto limpo $textoLimpo texto setado ${asCharSequence().toString()} tamanho $length" )
+if(length>2) insert(textoLimpo.length-2,",")
+if(length==2) insert(0,"0,")
+if(length==1)insert(0,"0,0")*/

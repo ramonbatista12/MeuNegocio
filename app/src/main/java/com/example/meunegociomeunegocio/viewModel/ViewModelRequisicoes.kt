@@ -4,79 +4,75 @@ import android.net.Uri
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.meunegociomeunegocio.hillt.ModuloRom_ProviderCriadorPdfFactory
 import com.example.meunegociomeunegocio.pdf.CriadorDePfd
-import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
-import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
-import com.example.meunegociomeunegocio.utilitario.EstadoLoadObterUri
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.net.URI
 
 @HiltViewModel
-class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositorio,private val pdf: CriadorDePfd): ViewModel() {
+class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositorio,private val pdf: CriadorDePfd): ViewModel(),
+    IDialogoCriacaoPdf {
     private val Tag="ViewModelRequisicoes"
     private val coroutineScope=viewModelScope
     private val fluxoDeFiltros= MutableStateFlow<FiltroDePesquisaRequisicoes?>(null)
     private val _caixaDeDialogoCriarPdf=MutableStateFlow(false)
-    private val _estadosDeCriacaoDePdf= MutableStateFlow<EstadoLoadObterUri>(EstadoLoadObterUri.Iniciando)
+    private val _estadosDeCriacaoDePdf= MutableStateFlow<EstadoLoadAcoes>(EstadoLoadAcoes.Iniciando)
     private val _envioDeRequisicao = MutableStateFlow<Uri?>(null)
     val fluxoDeId= MutableStateFlow(0)
     val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao().map {
-        if(it==null ||it.isEmpty()) EstadosDeLoad.Empty
-        else EstadosDeLoad.Caregado(it)
+        if(it==null ||it.isEmpty()) EstadosDeLoadCaregamento.Empty
+        else EstadosDeLoadCaregamento.Caregado(it)
     }
     val telaInternasRequisicoes= MutableStateFlow<TelasInternasDeRequisicoes>(TelasInternasDeRequisicoes.Lista)
     val estadoListaHistorico= MutableStateFlow<ListaHistorico>(ListaHistorico.Lista)
     val fluxoDadosDeRequisicao = fluxoDeId.flatMapLatest{
         repositorio.requisicaoPorId(it).map {
             if(it==null)
-                EstadosDeLoad.Empty
+                EstadosDeLoadCaregamento.Empty
             else
-                EstadosDeLoad.Caregado(it)
+                EstadosDeLoadCaregamento.Caregado(it)
         }
     }
     val fluxoHistoricoDeMudancas= fluxoDeId.flatMapLatest {
 
         repositorio.fluxoHistoricoDeMudancas(it).map {
             if(it==null||it.isEmpty())
-                EstadosDeLoad.Empty
+                EstadosDeLoadCaregamento.Empty
             else
-            EstadosDeLoad.Caregado(it)
+            EstadosDeLoadCaregamento.Caregado(it)
         }
     }
     val fluxoDePesquisaRequisicoes=fluxoDeFiltros.flatMapLatest {
-        if(it==null) flow { emit(EstadosDeLoad.Empty) }
+        if(it==null) flow { emit(EstadosDeLoadCaregamento.Empty) }
         else{
             when(it){
                 is FiltroDePesquisaRequisicoes.Clientes -> repositorio.fluxoDeRequisicoesPorCliente(it.query).map {
                     if(it==null)
-                        EstadosDeLoad.Empty
+                        EstadosDeLoadCaregamento.Empty
                     else
-                        EstadosDeLoad.Caregado(it)
+                        EstadosDeLoadCaregamento.Caregado(it)
 
                 }
                 is FiltroDePesquisaRequisicoes.Data -> repositorio.fluxoDeRequisicoesPorDataDeMudanca(it.query).map {
                     if(it==null)
-                        EstadosDeLoad.Empty
+                        EstadosDeLoadCaregamento.Empty
                     else
-                        EstadosDeLoad.Caregado(it)
+                        EstadosDeLoadCaregamento.Caregado(it)
 
                 }
                 is FiltroDePesquisaRequisicoes.Estado -> repositorio.fluxoDeRequisicaoPorEstado(it.query).map {
                     if(it==null)
-                        EstadosDeLoad.Empty
+                        EstadosDeLoadCaregamento.Empty
                     else
-                        EstadosDeLoad.Caregado(it)
+                        EstadosDeLoadCaregamento.Caregado(it)
 
                 }
             }
@@ -86,24 +82,24 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
     val fluxoProdutosRequisitados= fluxoDeId.flatMapLatest{
         repositorio.produtoRequisitado(it).map {
             if(it==null||it.isEmpty())
-                EstadosDeLoad.Empty
+                EstadosDeLoadCaregamento.Empty
             else
-                EstadosDeLoad.Caregado(it)
+                EstadosDeLoadCaregamento.Caregado(it)
         }
     }
-    val caixaDeDialogoCriarPdf= _caixaDeDialogoCriarPdf
+    override val caixaDeDialogoCriarPdf= _caixaDeDialogoCriarPdf
     val valorTotalRequisicao= fluxoDeId.flatMapLatest{
         repositorio.custoTotalPorRequisicao(it).map{
             if(it==null)
-               EstadosDeLoad.Empty
+               EstadosDeLoadCaregamento.Empty
             else
-                EstadosDeLoad.Caregado(it)
+                EstadosDeLoadCaregamento.Caregado(it)
 
 
         }}
-    val estadosDeCriacaoDePdf=_estadosDeCriacaoDePdf
+    override val estadosDeCriacaoDePdf=_estadosDeCriacaoDePdf
     val snackbarHostState = SnackbarHostState()
-    val envioDerequisicao =_envioDeRequisicao
+    override val envioDerequisicao =_envioDeRequisicao
     fun mostrarRequisicao(id:Int){
 
         coroutineScope.launch {
@@ -143,22 +139,22 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
             fluxoDeFiltros.emit(null)
         }
     }
-    fun criarPdf(uri: Uri?){
+    override fun criarPdf(uri: Uri?){
         coroutineScope.launch {
             if(uri==null){
-                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Erro)
+                _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Erro)
                 return@launch
             }
             val dadosDaRequisicao=repositorio.requisicaoPorId(fluxoDeId.value).first()
             val listaDeProdutos=repositorio.produtoRequisitado(fluxoDeId.value).first()
-            _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Criando)
+            _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Criando)
             try{
                 if(dadosDaRequisicao!=null&&listaDeProdutos!=null)
                 pdf.create(uri,dadosDaRequisicao!!,listaDeProdutos)
-                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Sucesso)
+                _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Sucesso)
                 _envioDeRequisicao.emit(uri)
             }catch (e: Exception){
-                _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Erro)
+                _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Erro)
                 return@launch
             }
 
@@ -166,14 +162,14 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
         }
 
     }
-    fun abrirDialogo(){
+    override fun abrirDialogo(){
         coroutineScope.launch {
-            _estadosDeCriacaoDePdf.emit(EstadoLoadObterUri.Iniciando)
+            _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Iniciando)
             _caixaDeDialogoCriarPdf.emit(true)
         }
 
     }
-    fun fecharDialogo(){
+    override fun fecharDialogo(){
         coroutineScope.launch{
             _caixaDeDialogoCriarPdf.emit(false)
         }

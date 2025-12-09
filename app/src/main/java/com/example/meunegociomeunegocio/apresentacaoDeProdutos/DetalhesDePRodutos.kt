@@ -14,19 +14,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.meunegociomeunegocio.R
-import com.example.meunegociomeunegocio.navegacao.IconesDeDestino
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
-import dagger.internal.Preconditions
 
 @Composable
 fun DetalhesDeProdutosCompate(vm:ViewModelProdutos,modifier: Modifier= Modifier){
-    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     Column(modifier = modifier) {
         when(produto.value){
-            is EstadosDeLoad.Caregado<*> -> {
-                val produto =produto.value as EstadosDeLoad.Caregado<ProdutoServico>
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                val produto =produto.value as EstadosDeLoadCaregamento.Caregado<ProdutoServico>
                 IconButton({vm.mostraLista()}){
                     Icon(painterResource(R.drawable.baseline_arrow_drop_down_24),"mostraLista")
                 }
@@ -34,11 +32,11 @@ fun DetalhesDeProdutosCompate(vm:ViewModelProdutos,modifier: Modifier= Modifier)
                 Preco(produto.obj.preco, Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
                 Descricao(produto.obj.descrisao,Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
             }
-            is EstadosDeLoad.Erro -> {}
-            is EstadosDeLoad.load -> {
+            is EstadosDeLoadCaregamento.Erro -> {}
+            is EstadosDeLoadCaregamento.load -> {
                 LinearProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             }
-            is EstadosDeLoad.Empty -> {}
+            is EstadosDeLoadCaregamento.Empty -> {}
         }
 
     }
@@ -46,21 +44,21 @@ fun DetalhesDeProdutosCompate(vm:ViewModelProdutos,modifier: Modifier= Modifier)
 
 @Composable
 fun DetalhesDeProdutosEspandido(vm:ViewModelProdutos,modifier: Modifier= Modifier){
-    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     Column(modifier = modifier) {
         when(produto.value){
-            is EstadosDeLoad.Caregado<*> -> {
-                val produto =produto.value as EstadosDeLoad.Caregado<ProdutoServico>
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                val produto =produto.value as EstadosDeLoadCaregamento.Caregado<ProdutoServico>
 
                 NomeProduto(produto.obj.nome,produto.obj.servico, Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 10.dp, vertical = 5.dp))
                 Preco(produto.obj.preco, Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
                 Descricao(produto.obj.descrisao,Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
             }
-            is EstadosDeLoad.Erro -> {}
-            is EstadosDeLoad.load -> {
+            is EstadosDeLoadCaregamento.Erro -> {}
+            is EstadosDeLoadCaregamento.load -> {
                 LinearProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             }
-            is EstadosDeLoad.Empty -> {}
+            is EstadosDeLoadCaregamento.Empty -> {}
         }
 
     }

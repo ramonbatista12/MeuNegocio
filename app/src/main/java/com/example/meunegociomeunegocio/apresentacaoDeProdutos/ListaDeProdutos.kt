@@ -10,7 +10,6 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +50,8 @@ import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoRequisitado
 
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.DialogoExclusao
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.Pesquisa
 import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
@@ -71,26 +71,26 @@ public fun String.formatData():String{
 
 @Composable
 fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
-    val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
+    val estadosDeLoadCaregamento=vm.produtos.collectAsState(initial = EstadosDeLoadCaregamento.load)
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,windowSize)
     LazyColumn {
         stickyHeader{
             Cabesalho(windowSize)
         }
-        when(estadosDeLoad.value){
-            is EstadosDeLoad.Empty -> {
+        when(estadosDeLoadCaregamento.value){
+            is EstadosDeLoadCaregamento.Empty -> {
                }
-            is EstadosDeLoad.Erro->{}
-            is EstadosDeLoad.load -> {
+            is EstadosDeLoadCaregamento.Erro->{}
+            is EstadosDeLoadCaregamento.load -> {
                 items(count = 5) {
                 ItemDelLoadTabelas()
 
             }}
-            is EstadosDeLoad.Caregado<*> -> {
-                val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                val lista =estadosDeLoadCaregamento.value as EstadosDeLoadCaregamento.Caregado<List<ProdutoServico>>
                 items(items = lista.obj){
-                    ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)})
+                    ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)},acacaoExclusao = {vm.abrirDialogo(it)} )
                 }
             }
 
@@ -100,6 +100,7 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSi
 
 
     }
+        DialogoExclusao(mensagem = "voce deseja excluir esse produto","Ouve um erro ao excluir o produto voce pode tentar novamente se quiser","O produto foi excluido com sucesso",vm)
 }
 
 
@@ -107,7 +108,7 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSi
 
 @Composable
 fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelCriarRequisicoes, windowSize: WindowSizeClass){
-    val estadosDeLoad=vm.fluxoDeProdutos.collectAsState(initial = EstadosDeLoad.load)
+    val estadosDeLoadCaregamento=vm.fluxoDeProdutos.collectAsState(initial = EstadosDeLoadCaregamento.load)
     val coroutineScope =rememberCoroutineScope()
     Column(modifier = modifier.padding(horizontal = 5.dp)) {
         if(!windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
@@ -119,17 +120,17 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelCriarRequisicoes, 
             stickyHeader{
                 Cabesalho(windowSize)
             }
-            when(estadosDeLoad.value){
-                is EstadosDeLoad.Empty -> {
+            when(estadosDeLoadCaregamento.value){
+                is EstadosDeLoadCaregamento.Empty -> {
                 }
-                is EstadosDeLoad.Erro->{}
-                is EstadosDeLoad.load -> {
+                is EstadosDeLoadCaregamento.Erro->{}
+                is EstadosDeLoadCaregamento.load -> {
                     items(count = 5) {
                         ItemDelLoadTabelas()
 
                     }}
-                is EstadosDeLoad.Caregado<*> -> {
-                    val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+                is EstadosDeLoadCaregamento.Caregado<*> -> {
+                    val lista =estadosDeLoadCaregamento.value as EstadosDeLoadCaregamento.Caregado<List<ProdutoServico>>
                     items(items = lista.obj){
                         ItemProduto(windowSize=windowSize, produto = it,
                                     acaoSelecionarProduto = {id,nm->
@@ -151,26 +152,26 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelCriarRequisicoes, 
 
 @Composable
 fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSize: WindowSizeClass){
-    val estadosDeLoad=vm.produtos.collectAsState(initial = EstadosDeLoad.load)
+    val estadosDeLoadCaregamento=vm.produtos.collectAsState(initial = EstadosDeLoadCaregamento.load)
     Column(modifier = modifier.padding(horizontal = 5.dp).fillMaxWidth(0.4f)) {
         BaraDePesquisaProdutos(modifier = Modifier.fillMaxWidth().padding(vertical = 5.5.dp, horizontal = 5.dp),vm = vm,windowSize)
         LazyColumn {
             stickyHeader{
                 Cabesalho(windowSize)
             }
-            when(estadosDeLoad.value){
-                is EstadosDeLoad.Empty -> {
+            when(estadosDeLoadCaregamento.value){
+                is EstadosDeLoadCaregamento.Empty -> {
                 }
-                is EstadosDeLoad.Erro->{}
-                is EstadosDeLoad.load -> {
+                is EstadosDeLoadCaregamento.Erro->{}
+                is EstadosDeLoadCaregamento.load -> {
                     items(count = 5) {
                         ItemDelLoadTabelas()
 
                     }}
-                is EstadosDeLoad.Caregado<*> -> {
-                    val lista =estadosDeLoad.value as EstadosDeLoad.Caregado<List<ProdutoServico>>
+                is EstadosDeLoadCaregamento.Caregado<*> -> {
+                    val lista =estadosDeLoadCaregamento.value as EstadosDeLoadCaregamento.Caregado<List<ProdutoServico>>
                     items(items = lista.obj){
-                        ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)})
+                        ItemProduto(windowSize=windowSize, produto = it, acaoMostrarProduto = {vm.mostraDescricao(it)}, acaoFormatacao = {vm.formatarPreco(it)}, acacaoExclusao = {vm.abrirDialogo(it)})
                     }
                 }
 
@@ -180,6 +181,7 @@ fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos,
 
 
         }
+        DialogoExclusao(mensagem = "voce deseja excluir esse produto","Ouve um erro ao excluir o produto voce pode tentar novamente se quiser","O produto foi excluido com sucesso",vm)
     }
 
 
@@ -187,11 +189,11 @@ fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos,
 
 @Composable
 fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequisicoes, windowSize: WindowSizeClass){
-    val produtos =vm.fluxoProdutosRequisitados.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    val produtos =vm.fluxoProdutosRequisitados.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
      when(produtos.value){
-         is EstadosDeLoad.Empty -> {}
-         is EstadosDeLoad.Caregado<*> -> {
-             val produtos =produtos.value as EstadosDeLoad.Caregado<List<ProdutoRequisitado>>
+         is EstadosDeLoadCaregamento.Empty -> {}
+         is EstadosDeLoadCaregamento.Caregado<*> -> {
+             val produtos =produtos.value as EstadosDeLoadCaregamento.Caregado<List<ProdutoRequisitado>>
              Column(modifier = modifier.padding(horizontal = 5.dp)) {
 
                  LazyColumn {
@@ -205,7 +207,7 @@ fun ListaDeProdutosRequisitados(modifier: Modifier=Modifier, vm: ViewModelRequis
 
                  }
              }}
-         is EstadosDeLoad.load -> {}
+         is EstadosDeLoadCaregamento.load -> {}
          else -> {}
      }
 
@@ -243,12 +245,16 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
                 Cabesalho(windowSizeClass)
             }
          items(items = pesquisa.value) {
-             ItemProduto(windowSize=windowSizeClass, produto = it, acaoMostrarProduto = {id->vm.mostraDescricao(id)}, acaoFormatacao = {it.toString().formatarPreco()})
+             ItemProduto(windowSize=windowSizeClass,
+                         produto = it,
+                         acaoMostrarProduto = {id->vm.mostraDescricao(id)},
+                         acaoFormatacao = {it.toString().formatarPreco()},
+                         acacaoExclusao = {id->vm.abrirDialogo(id)})}
          }
         }
     }
 
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -281,7 +287,7 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelCr
                 Cabesalho(windowSizeClass)
             }
             items(items = pesqisa.value) {
-               ItemProduto(windowSize = windowSizeClass, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()})
+               ItemProduto(windowSize = windowSizeClass, produto = it, acaoMostrarProduto = {}, acaoFormatacao = {it.toString().formatarPreco()},acacaoExclusao = {})
             }
         }
     }
@@ -293,6 +299,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
                         produto: ProdutoServico ,
                         acaoMostrarProduto:(id:Int)->Unit= {},
                         acaoFormatacao:(preco:Double)->String={""},
+                        acacaoExclusao:(id:Int)->Unit
                         ){
 
     val expandidido = remember{mutableStateOf(false)}
@@ -332,7 +339,7 @@ private fun ItemProduto(windowSize: WindowSizeClass, modifier: Modifier=Modifier
                     Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                 }
 
-                IconButton ({},modifier= Modifier.size(30.dp).padding(5.dp)) {
+                IconButton ({acacaoExclusao(produto.id)},modifier= Modifier.size(30.dp).padding(5.dp)) {
                     Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                 }
               /*  IconButton(onClick = {expandidido.value=!expandidido.value}, modifier = Modifier.size(30.dp)) {

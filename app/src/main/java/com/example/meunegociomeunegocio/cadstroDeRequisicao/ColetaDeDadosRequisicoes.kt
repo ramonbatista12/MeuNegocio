@@ -1,5 +1,6 @@
 package com.example.meunegociomeunegocio.cadstroDeRequisicao
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Icon
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -32,6 +33,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -53,19 +56,20 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ListaDeClientes
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutos
+import com.example.meunegociomeunegocio.apresentacaoRequisicoes.DialogoCriarPdf
 import com.example.meunegociomeunegocio.viewModel.ProdutoSelecionado
 import com.example.meunegociomeunegocio.viewModel.TelasInternas
 import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
-
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ColetaDeDaDosRequisicao(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass,acaoDeVOutar:()-> Unit){
     val telas =vm.telaAtual.collectAsStateWithLifecycle(TelasInternas.SelecaoDeClientes)
     LaunchedEffect(Unit) {
         Log.d("ColetaDeDaDosRequisicao","ColetaDeDaDosRequisicao iniciada")
     }
-
+    Box{
         when(telas.value){
             is TelasInternas.SelecaoDeClientes -> SelecaoDeClientes(vm,windowSizeClass,acaoDeVOutar)
 
@@ -73,14 +77,19 @@ fun ColetaDeDaDosRequisicao(vm: ViewModelCriarRequisicoes,windowSizeClass: Windo
 
             is TelasInternas.Observacoes -> Observacoes(vm)
 
-            is TelasInternas.Confirmacao -> Confirmacao()
+            is TelasInternas.Confirmacao -> Confirmacao(vm, acaoDeVOutar = {acaoDeVOutar()})
 
             else -> {}
 
         }
+        SnackbarHost(vm.snapshotState, modifier = Modifier.align(Alignment.Center))}
+    }
 
 
-}
+
+
+
+
 
 @Composable
 private fun SelecaoDeClientes(vm: ViewModelCriarRequisicoes,windowSizeClass: WindowSizeClass,aaoDeVOutar: () -> Unit){
@@ -296,7 +305,7 @@ private fun Observacoes(vm: ViewModelCriarRequisicoes){
             Button({coroutineScope.launch { vm.anteriorEstadio() }}, modifier = Modifier.align(Alignment.CenterStart)) {
                 Text("Selecao Produtos/Serviços")
             }
-            Button({}, modifier = Modifier.align(Alignment.CenterEnd)) {
+            Button({vm.salvarRequisicao()}, modifier = Modifier.align(Alignment.CenterEnd)) {
                 Text("Confirmar")
             }
         }
@@ -304,7 +313,10 @@ private fun Observacoes(vm: ViewModelCriarRequisicoes){
 }
 
 @Composable
-private fun Confirmacao(){}
+private fun Confirmacao(vm: ViewModelCriarRequisicoes,acaoDeVOutar: () -> Unit){
+    DialogoCriarPdf(vm, acaoFimDeEmvio = acaoDeVOutar)
+
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)

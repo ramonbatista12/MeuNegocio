@@ -2,7 +2,6 @@ package com.example.meunegociomeunegocio.apresentacaoDeProdutos
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -20,7 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.TealasDeProduto
 
 @Composable
@@ -60,17 +59,17 @@ fun ApresentacaoProdutos(modifier: Modifier=Modifier,
 @Composable
 private fun MostrarProduto(vm: ViewModelProdutos){
     val mostrarProduto =vm.mostraProduto.collectAsStateWithLifecycle()
-    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoad.load)
+    val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     val scrolState = rememberScrollState()
     if(mostrarProduto.value){
         ModalBottomSheet(onDismissRequest = { vm.ocultar() }, Modifier.height(700.dp)) {
             Column(modifier = Modifier.padding(all = 5.dp).verticalScroll(state = scrolState)) {
                 when(produto.value){
-                    is EstadosDeLoad.load -> {
+                    is EstadosDeLoadCaregamento.load -> {
                         Text("Caregando.....", Modifier.padding(bottom = 5.dp))
                     }
-                    is EstadosDeLoad.Caregado<*> -> {
-                        val produto = produto.value as EstadosDeLoad.Caregado<ProdutoServico>
+                    is EstadosDeLoadCaregamento.Caregado<*> -> {
+                        val produto = produto.value as EstadosDeLoadCaregamento.Caregado<ProdutoServico>
 
                             Text(text = " ${produto.obj.nome} ", Modifier.padding(bottom = 5.dp).align(Alignment.CenterHorizontally), fontSize = 20.sp)
                             Text("Descricao : ${produto.obj.descrisao} ", Modifier.padding(bottom = 5.dp))
@@ -79,7 +78,7 @@ private fun MostrarProduto(vm: ViewModelProdutos){
 
 
                     }
-                    is EstadosDeLoad.Empty -> {}
+                    is EstadosDeLoadCaregamento.Empty -> {}
                     else -> {}
                 }
             }

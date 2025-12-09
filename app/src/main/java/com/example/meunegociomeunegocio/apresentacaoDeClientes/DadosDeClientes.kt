@@ -45,7 +45,7 @@ import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
 import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
-import com.example.meunegociomeunegocio.utilitario.EstadosDeLoad
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDadosDeClientes
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -53,13 +53,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun DadosDeClientes(vm: ViewModelCliente, windowSizeClass: WindowSizeClass, modifier: Modifier=Modifier){
     val id =(vm.telaVisualizada.collectAsState().value as TelasInternasDeClientes.DadosDoCliente).idCliente
-    val load=  vm.dadosDocliente(id).collectAsState(initial = EstadosDeLoad.load )
+    val load=  vm.dadosDocliente(id).collectAsState(initial = EstadosDeLoadCaregamento.load )
     when(load.value){
-        is EstadosDeLoad.load->{
+        is EstadosDeLoadCaregamento.load->{
             CircularProgressIndicator(modifier = modifier.size(40.dp))
         }
-        is EstadosDeLoad.Caregado<*> ->{
-            DadosDeClientesImpl(vm, windowSizeClass = windowSizeClass, dadosDeClientes = (load.value as EstadosDeLoad.Caregado<DadosDeClientes>).obj)
+        is EstadosDeLoadCaregamento.Caregado<*> ->{
+            DadosDeClientesImpl(vm, windowSizeClass = windowSizeClass, dadosDeClientes = (load.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj)
           }
 
         else -> {Log.d("DadosDeClientes","erro")}
@@ -103,8 +103,8 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
     val sleDeClientes=vm.fluxoDeDadosDeClientesPainelExpandido.collectAsState(emptyFlow<DadosDeClientes>())
     val selecaoEndTel =vm.daosClioente.collectAsState()
     when(sleDeClientes.value){
-        is EstadosDeLoad.Caregado<*> ->{
-            val dadosDeClientes=(sleDeClientes.value as EstadosDeLoad.Caregado<DadosDeClientes>).obj
+        is EstadosDeLoadCaregamento.Caregado<*> ->{
+            val dadosDeClientes=(sleDeClientes.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj
             Column (modifier=Modifier.padding(all = 5.dp)){
 
                 Iniciais(dadosDeClientes.cliente.nome,
