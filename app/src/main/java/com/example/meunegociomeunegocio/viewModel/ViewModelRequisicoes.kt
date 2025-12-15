@@ -5,7 +5,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.meunegociomeunegocio.pdf.CriadorDePfd
+import com.example.meunegociomeunegocio.repositorioRom.EstadoRequisicao
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
+import com.example.meunegociomeunegocio.repositorioRom.Requisicao
 import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -174,10 +176,24 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
             _caixaDeDialogoCriarPdf.emit(false)
         }
     }
-
     fun anunciarConclusao(){
         coroutineScope.launch {
             snackbarHostState.showSnackbar("Pdf criado com sucesso")
+        }
+    }
+    fun cancelarRequisicao(r:Requisicao){
+        viewModelScope.launch {
+            repositorio.atulizarRequisicao(Requisicao(id = r.id, idCli =  r.idCli, idEs = EstadoRequisicao.Cancelado.id, desc = r.desc, obs = r.obs))
+        }
+    }
+    fun marcarRequisicaoComoEntregue(r:Requisicao){
+        viewModelScope.launch {
+            repositorio.atulizarRequisicao(Requisicao(id = r.id, idCli =  r.idCli, idEs = EstadoRequisicao.Entregue.id, desc = r.desc, obs = r.obs))
+        }
+    }
+    fun confirmarRequisicao(r:Requisicao){
+        viewModelScope.launch {
+            repositorio.atulizarRequisicao(Requisicao(id = r.id, idCli =  r.idCli, idEs =    EstadoRequisicao.Confirmado.id, desc = r.desc, obs = r.obs))
         }
     }
 }

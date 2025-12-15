@@ -49,6 +49,7 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     val pesquisaProdutos =pesquisa.flatMapLatest {
         repositorio.fluxoDePesquisaDeProdutos (it.pesquisa)
     }
+
     val selecaoDeClientes=_estadosDeSelecaoDeClientes
     val estadosDeSelecaoDeProdutos=_estadosDeSelecaoDeProdutos
     val fluxoDeClientes= repositorio.fluxoDeClientes().map {
@@ -94,8 +95,8 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     suspend fun irParaListaDeProdutosSelecionados(){
         _estadosDeSelecaoDeProdutos.emit(SelecaoDeProdutos.ProdutosSelecionados)
     }
-    suspend fun prosimoEstadio()=gerenciador.proximo()
-    suspend fun anteriorEstadio()=gerenciador.anterior()
+    suspend fun prosimoEstagio()=gerenciador.proximo()
+    suspend fun estagioAnterior()=gerenciador.anterior()
     suspend fun selecionarProduto(id:Int,nome:String){
         val lista =listIdProdutos.value
         val novoLista=lista.toMutableList()
@@ -143,9 +144,10 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
                 _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Erro)
                 return@launch
             }
+            _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Criando)
             val dadosDaRequisicao=repositorio.requisicaoPorId(fluxoDeId.value).first()
             val listaDeProdutos=repositorio.produtoRequisitado(fluxoDeId.value).first()
-            _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Criando)
+
             try{
                 if(dadosDaRequisicao!=null&&listaDeProdutos!=null)
                     pdf.create(uri,dadosDaRequisicao!!,listaDeProdutos)
@@ -194,6 +196,9 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
             _caixaDedialogoRequisicao.emit(true)
             gerenciador.proximo()
         }
+    }
+    fun salvarObservacoe(obs:String?,desc:String?){
+        observacoes.value=Pair(desc.toString(),obs.toString())
     }
 
 }

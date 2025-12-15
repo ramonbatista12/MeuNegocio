@@ -487,24 +487,26 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                 Descricao(requisicao.obj.requisicao.desc, modifier = Modifier.padding(bottom = 5.dp))
                 Custo(vm, modifier = Modifier.padding(bottom = 5.dp))
                 Estado(requisicao.obj.estado.descricao)
-                if(requisicao.obj.estado.descricao!="Cancelado") {
+                if(requisicao.obj.estado.descricao!="Cancelado"&& requisicao.obj.estado.descricao!="Entregue") {
                 HorizontalDivider()
                 Row(modifier = Modifier
                     .padding(vertical = 10.dp, horizontal = 5.dp)
                     .align(Alignment.CenterHorizontally)) {
                     OutlinedButton({
+                        vm.cancelarRequisicao(requisicao.obj.requisicao)
                     }) {
                         Text("Cancelar")
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
+                    if(requisicao.obj.estado.descricao!="Confirmado")
                     OutlinedButton({
-
+                        vm.confirmarRequisicao(requisicao.obj.requisicao)
                     }) {
                         Text("Confirmar")
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
                     OutlinedButton({
-                        vm.verLista()
+                        vm.marcarRequisicaoComoEntregue(requisicao.obj.requisicao)
                     }) {
                         Text("Entreque")
                     }

@@ -137,36 +137,47 @@ class CriadorDePfd(private val contexto: Context) {
     private fun desenheTexto(pagina: PdfDocument.Page,paint: Paint,string: String,offsetDesenho: OffsetDesenho,limite: Int): OffsetDesenho{
         var x=0
         var y=0
-        val tamanhoDisponivel =(pagina.info.pageWidth.toInt()-(limite+10))
+        val tamanhoDisponivel =(offsetDesenho.x-(limite))
         val medidaDoTexto= paint.measureText(string)
-        if(medidaDoTexto.toInt()<=limite){
+        if(medidaDoTexto.toInt()<=tamanhoDisponivel){
             pagina.canvas.drawText(string,offsetDesenho.x.toFloat(),offsetDesenho.y.toFloat(),paint)
             val balds = Rect()
             paint.getTextBounds(string,0,string.length,balds)
             x=balds.width()
             y=balds.height()
-            Log.d("CriadorPdf","medidas do offset $x $y")
+            Log.d("CriadorPdf","medidas do offset $x $y   limite $limite")
         }
         else{
             var texto =string
             var offset = OffsetDesenho(offsetDesenho.x,offsetDesenho.y)
             while (!texto.isBlank()){
                 Log.d("CriadorPdf","medidas do offset no wile $x $y")
+                Log.d("criardor pdf","texto ${texto}")
                 val medidaDoTexto= paint.measureText(texto)
-                if(medidaDoTexto.toInt()<=tamanhoDisponivel){
+                if(medidaDoTexto.toInt()>=tamanhoDisponivel){
                     val quebraDotexto = paint.breakText(texto,true,(pagina.info.pageWidth-50f),null)
-                    val linha=texto.substring(quebraDotexto)
+                    val linha=texto.substring(0,quebraDotexto)
                     pagina.canvas.drawText(linha,offset.x.toFloat(),offset.y.toFloat(),paint)
                     val balds = Rect()
                     paint.getTextBounds(linha,0,linha.length,balds)
-                    offset= OffsetDesenho(x=offsetDesenho.x,y=balds.height())
+                    offset= OffsetDesenho(x=offsetDesenho.x,y=(balds.height()+3)+offset.y)
                     if(quebraDotexto- texto.length!=0)
                         texto=texto.substring(quebraDotexto,texto.length).toString()
                     else texto=""
                     Log.d("criardor pdf","fim do loop")
                 }
+                else{
+                    Log.d("criardor pdf","fim do loop ${texto}")
+                    pagina.canvas.drawText(texto,offset.x.toFloat(),offset.y.toFloat(),paint)
+                    val balds = Rect()
+                    paint.getTextBounds(texto,0,texto.length,balds)
+                    offset= OffsetDesenho(x=offsetDesenho.x,y=(balds.height()+3)+offset.y)
+                    texto=""
+                }
+
                 Log.d("CriadorPdf","medidas do offset no wile $x $y")
             }
+
             return offset.copy(x=offsetDesenho.x,y=offsetDesenho.y+offsetDesenho.y)
         }
 
@@ -185,7 +196,7 @@ class CriadorDePfd(private val contexto: Context) {
         var offset=posicoes[0]
         listaDeProdutos.forEach {
          Log.d("CriadorPdf","desenhando produto offsetAtual x=${offset.x} y=${offset.y}")
-        val  offsetAux=desenheTexto(pagina[0],paint,it.nomePrd,offset.copy(x=offset.x,y=offset.y+20),posicoes[1].x)
+        val  offsetAux=desenheTexto(pagina[0],paint,it.nomePrd,offset.copy(x=offset.x,y=offset.y+20),(posicoes[1].x))
                    desenheTexto(pagina[0],paint,it.qnt.toString(),OffsetDesenho(x=posicoes[1].x,y=offset.y+20),posicoes[2].x)
                    desenheTexto(pagina[0],paint,it.preco.toString().formatarPreco(),offset.copy(x=posicoes[2].x,y=offset.y+20),posicoes[3].x)
                    desenheTexto(pagina[0],paint,it.total.toString().formatarPreco(),offset.copy(x=posicoes[3].x,y=offset.y+20),pagina[0].info.pageWidth-50)
