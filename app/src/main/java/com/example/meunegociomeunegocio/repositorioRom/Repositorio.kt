@@ -50,4 +50,7 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     suspend fun aparProdutoPorRequisicao(id:Int)=withContext(Dispatchers.IO) { dao.apagarProdutoPorRequisicao(id) }
     suspend fun apagarProdutoRequisicao(produto: ProdutoRequisicao)=withContext(Dispatchers.IO) { dao.excluitProdutoRequisitado(produto.toEntidadeRequesicaoProduto())  }
     suspend fun atualizarProdutoRequisicao(produto: ProdutoRequisicao)=withContext(Dispatchers.IO) { dao.atualizarProdutoRequisicao(produto.toEntidadeRequesicaoProduto())}
+    suspend fun atualizarProdutosRequisicao(list: List<ProdutoRequisicao>)=withContext(Dispatchers.IO) {dao.atualizarProdutosRequisicao(list.map { it.toEntidadeRequesicaoProduto() })}
+    //
+    suspend fun salvarEdicaoCompleta(dado: Requisicao,list: List<ProdutoRequisicao>) =withContext(Dispatchers.IO) { dao.salvarEdicaoCompleta(dado.toEntidadeRequisicao(),list.map { it.toEntidadeRequesicaoProduto() })}
 }

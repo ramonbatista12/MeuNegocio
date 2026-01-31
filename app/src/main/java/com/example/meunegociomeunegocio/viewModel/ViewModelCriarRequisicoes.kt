@@ -14,6 +14,9 @@ import com.example.meunegociomeunegocio.repositorioRom.Requisicao
 import com.example.meunegociomeunegocio.utilitario.AuxiliarValidacaoCriarRequiscao
 import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +25,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Repositorio,private val pdf: CriadorDePfd): ViewModel(),IDialogoCriacaoPdf {
+@HiltViewModel(assistedFactory = ViewModelCriarRequisicoes.Factorory::class)
+class ViewModelCriarRequisicoes @AssistedInject constructor(private val repositorio: Repositorio, private val pdf: CriadorDePfd,@Assisted val id:Int?): ViewModel(),IDialogoCriacaoPdf {
     private val gerenciador = GengereciadorDeTelas()
     private  val idCliente = MutableStateFlow(0)
     private val corotineContext=viewModelScope
@@ -38,6 +41,8 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     private val _estadosDeCriacaoDePdf=MutableStateFlow<EstadoLoadAcoes>(EstadoLoadAcoes.Iniciando)
     private val fluxoDeId= MutableStateFlow(0)
     private val  validador=AuxiliarValidacaoCriarRequiscao()
+    private var listaDeIdsDePRodutos = mutableListOf<Int>()
+    private var idEstado =0;
     //Par<Int,Int> vai cepresentar o id do produto e a quantidade
     private val listIdProdutos= MutableStateFlow<List<ProdutoSelecionado>>(emptyList())
     val observacoes=_observacoes
@@ -70,6 +75,30 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
     override val envioDerequisicao: MutableStateFlow<Uri?> = _envioDerequisicao
     override val estadosDeCriacaoDePdf: MutableStateFlow<EstadoLoadAcoes> = _estadosDeCriacaoDePdf
 
+    init {
+        if(id!=null) caregarDados(id)
+    }
+
+    fun caregarDados(id: Int){
+
+        viewModelScope.launch {
+          var dados=  repositorio.requisicaoPorId(id)
+          var dado= dados.first()
+            if(dado!=null){
+                clienteSelecionado.emit(Pair(dado.cliente.id,dado.cliente.nome))
+                var produtoReqisitado = repositorio.produtoRequisitado(id)
+                var map =produtoReqisitado.first().map { ProdutoSelecionado(it.idProd,it.nomePrd,it.qnt) }
+                produtoReqisitado.first().forEach {
+                    listaDeIdsDePRodutos.add(it.id)
+                }
+                idEstado=dados.first()!!.requisicao.idEs
+                produtosSelecionado.emit(map)
+                observacoes.emit(Pair(dado.requisicao.desc,dado.requisicao.obs))
+            }
+
+
+        }
+    }
 
     suspend fun mudarPesquisa(pesquisa: Pesquisa){
        this.pesquisa.emit(pesquisa)
@@ -162,6 +191,10 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
         }
     }
 
+    override fun limparEnvio() {
+       this._envioDerequisicao.value=null
+    }
+
     fun salvarRequisicao(){
         viewModelScope.launch {
             val lista: List<ProdutoSelecionado>
@@ -183,22 +216,43 @@ class ViewModelCriarRequisicoes @Inject constructor(private val repositorio: Rep
                 gerenciador.irAoDestino(TelasInternas.SelecaoDeProdutos)
                 return@launch
             }
-            val requisicao= Requisicao(id = 0,
-                                              idCli = idCliente,
-                                              idEs = EstadoRequisicao.Pendente.id,
-                                              desc = observacoes.value?.first.toString(),
-                                              obs = observacoes.value?.second.toString())
-            fluxoDeId.value =repositorio.inserirRequisicao(requisicao).toInt()
-            val produtosRequisicao=produtosSelecionado.value.map {
-                ProdutoRequisicao(id = 0, idReq = fluxoDeId.value, idProd = it.id, qnt = it.quantidade)
-            }
-            repositorio.inserirRequisicaoProduto(produtosRequisicao)
-            _caixaDedialogoRequisicao.emit(true)
+            persistirNobancoDeDados(idCliente,idEstado)
+
             gerenciador.proximo()
         }
     }
+    private suspend fun persistirNobancoDeDados(idCliente: Int,idEstado: Int){
+        if(id==null){
+        val requisicao= Requisicao(id = 0,
+            idCli = idCliente,
+            idEs = EstadoRequisicao.Pendente.id,
+            desc = observacoes.value?.first.toString(),
+            obs = observacoes.value?.second.toString())
+        fluxoDeId.value =repositorio.inserirRequisicao(requisicao).toInt()
+        val produtosRequisicao=produtosSelecionado.value.map {
+            ProdutoRequisicao(id = 0, idReq = fluxoDeId.value, idProd = it.id, qnt = it.quantidade)
+        }
+        repositorio.inserirRequisicaoProduto(produtosRequisicao)
+        _caixaDedialogoRequisicao.emit(true)
+    }
+         else {
+        val requisicao= Requisicao(id = id,
+            idCli = idCliente,
+            idEs =idEstado,
+            desc = observacoes.value?.first.toString(),
+            obs = observacoes.value?.second.toString())
+        repositorio.salvarEdicaoCompleta(requisicao,produtosSelecionado.value.map {ProdutoRequisicao(id = 0, idReq = id, idProd = it.id, qnt = it.quantidade)})
+
+        fluxoDeId.value=id;
+        _caixaDedialogoRequisicao.emit(true)
+    }}
     fun salvarObservacoe(obs:String?,desc:String?){
-        observacoes.value=Pair(desc.toString(),obs.toString())
+        observacoes.value=Pair(desc ?: "",obs ?: "")
+    }
+
+    @AssistedFactory
+    interface Factorory{
+        fun criar(id: Int?): ViewModelCriarRequisicoes
     }
 
 }

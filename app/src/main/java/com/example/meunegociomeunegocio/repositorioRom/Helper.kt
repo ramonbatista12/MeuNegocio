@@ -10,7 +10,7 @@ fun EntidadeEndereco.toEndereco(): Endereco= Endereco(id=this.id, idCli = this.i
 fun Endereco.toEntidadeEndereco(): EntidadeEndereco= EntidadeEndereco(id=this.id, idCli = this.idCli, rua = this.rua, numero = this.numero, bairro = this.bairro,
     cidade = this.cidade, cep = this.cep, estado = this.estado, complemeto = this.complemento)
 fun EntidadeRequisicao.toRequisicao(): Requisicao = Requisicao(id = this.id, idCli = this.idCli, idEs = this.idEs, desc = this.desc, obs = this.obs)
-fun Requisicao.toEntidadeRequisicao(): EntidadeRequisicao = EntidadeRequisicao(id = this.id, idCli = this.idCli, idEs = this.idEs, desc = this.desc, obs = this.obs)
+fun Requisicao.toEntidadeRequisicao(): EntidadeRequisicao = EntidadeRequisicao(id = this.id, idCli = this.idCli, idEs = this.idEs, desc = this.desc?:"", obs = this.obs?:"")
 fun EntidadeProdutoServico.toProdutoServico(): ProdutoServico=ProdutoServico(id = this.id, servico = this.servico, nome = this.nome, descrisao = this.descrisao, preco = this.preco, ativo = this.atiovo)
 fun ProdutoServico.toEntidadeProdutoServico(): EntidadeProdutoServico=EntidadeProdutoServico(id = this.id, servico = this.servico, nome = this.nome, descrisao = this.descrisao, preco = this.preco, atiovo = this.ativo)
 fun EntidadeEstado.toEstado(): Estado =Estado(id = this.id, descricao = this.descricao)

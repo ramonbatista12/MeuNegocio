@@ -27,7 +27,7 @@ class AuxiliarValidacaoDadosDeClientes {
         if(string==null) return string
         if(string.isBlank()) return null
         if(string.length!=18) throw IllegalArgumentException("CNPJ invalido pois nao conten o numero coreto de digitos")
-        if(!string.matches(Regex("\\d{2}\\.\\d{3}\\s.\\d{3}/\\d{4}-\\d{2}"))) throw IllegalArgumentException("CNPJ invalido pois nao esta no formato correto")
+        if(!string.matches(Regex("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"))) throw IllegalArgumentException("CNPJ invalido pois nao esta no formato correto")
         return string
     }
     fun validarTelefone(telefone: Telefone?,id: Int): Telefone{

@@ -161,7 +161,7 @@ private fun SelecaoDeProdutosEspandido(vm: ViewModelCriarRequisicoes,windowSizeC
     Row(modifier = Modifier.fillMaxWidth()) {
         ListaDeProdutosSelecionados(vm,windowSizeClass, modifier = Modifier.fillMaxWidth(0.4f))
         VerticalDivider(Modifier.padding(horizontal = 15.dp))
-        ListaDeProdutos(modifier = Modifier,vm = vm, windowSize = windowSizeClass)
+        ListaDeProdutos(modifier = Modifier,vm = vm, windowSize = windowSizeClass,{})
     }
 }
 @Composable
@@ -174,7 +174,7 @@ private fun SelecaoDeProdutosCompat(vm: ViewModelCriarRequisicoes,windowSizeClas
                 ListaDeProdutosSelecionados(vm,windowSizeClass = windowSizeClass)
             }
             is SelecaoDeProdutos.ListaDeProdutos->{
-                ListaDeProdutos(vm = vm, windowSize = windowSizeClass)
+                ListaDeProdutos(vm = vm, windowSize = windowSizeClass, acaoDeEdicaoDoProduto = {})
             }
         }
 

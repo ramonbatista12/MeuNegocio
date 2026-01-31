@@ -40,13 +40,13 @@ fun BotaoFlutuante(vm: ViewModelMain,acaoDeNavegacao: (DestinosDeNavegacao) -> U
     FloatingActionButton(onClick = {
         when(estadoDaBara.value){
             is DestinosDeNavegacao.Produtos -> {
-                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos)
+                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos(null))
             }
             is DestinosDeNavegacao.Clientes -> {
                 acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeCleintes)
             }
             is DestinosDeNavegacao.Requisicoes -> {
-                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes)
+                acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes(null))
             }
             else -> {}
 
@@ -124,10 +124,10 @@ private fun BaraLateralLarguraEspandida(windowSizeClass: WindowSizeClass,
                              acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeCleintes)
                          }
                          is DestinosDeNavegacao.Produtos -> {
-                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos)
+                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeProdutos(null))
                          }
                          is DestinosDeNavegacao.Requisicoes -> {
-                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes)
+                             acaoDeNavegacao(DestinosDeNavegacao.AdicaoDeRequisicoes(null))
                          }
                          else -> {}
                      }

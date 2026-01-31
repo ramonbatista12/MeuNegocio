@@ -25,11 +25,11 @@ import com.example.meunegociomeunegocio.viewModel.TealasDeProduto
 @Composable
 fun ApresentacaoProdutos(modifier: Modifier=Modifier,
                          windowSize: WindowSizeClass,
-                         vm: ViewModelProdutos ){
+                         vm: ViewModelProdutos,acaoDeEdicaoDeProdutos:(Int)-> Unit ){
       when{
           windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> {
               Row(modifier = modifier) {
-                  ListaDeProdutosExpandido(Modifier,vm,windowSize)
+                  ListaDeProdutosExpandido(Modifier,vm,windowSize,acaoDeEdicaoDeProdutos)
                   VerticalDivider(Modifier.padding(horizontal = 5.dp))
                   DetalhesDeProdutosEspandido(vm,modifier)
                 }
@@ -38,7 +38,7 @@ fun ApresentacaoProdutos(modifier: Modifier=Modifier,
               val telas=vm.telasDeProdutos.collectAsStateWithLifecycle()
               when(telas.value){
                   is TealasDeProduto.Lista -> {
-                      ListaDeProdutos(modifier,vm,windowSize)
+                      ListaDeProdutos(modifier.padding(bottom = 70.dp),vm,windowSize,acaoDeEdicaoDeProdutos)
                   }
                   is TealasDeProduto.Descricao -> {
                       DetalhesDeProdutosCompate(vm,modifier)

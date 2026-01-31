@@ -137,6 +137,7 @@ class CriadorDePfd(private val contexto: Context) {
     private fun desenheTexto(pagina: PdfDocument.Page,paint: Paint,string: String,offsetDesenho: OffsetDesenho,limite: Int): OffsetDesenho{
         var x=0
         var y=0
+
         val tamanhoDisponivel =(offsetDesenho.x-(limite))
         val medidaDoTexto= paint.measureText(string)
         if(medidaDoTexto.toInt()<=tamanhoDisponivel){
@@ -150,7 +151,23 @@ class CriadorDePfd(private val contexto: Context) {
         else{
             var texto =string
             var offset = OffsetDesenho(offsetDesenho.x,offsetDesenho.y)
-            while (!texto.isBlank()){
+            var tokems =texto.split(" ")
+            Log.d("CriadorPdf","quebrando o texto em tokens "+tokems.toString())
+            for(t in tokems){
+                Log.d("CriadorPdf","medindo o tokem")
+                val medidaDoTexto= paint.measureText(t)
+                var rectangle =Rect()
+                paint.getTextBounds(t,0,t.length,rectangle)
+                Log.d("CriadorPdf","largura da medidoa do texto "+medidaDoTexto.toInt())
+                Log.d("CriadorPdf","largura  e altura do retangulo ${rectangle.width()} ${rectangle.height()}")
+                if(offset.x+rectangle.width()+5>=limite){
+                    Log.d("CriadorPdf","mudando offsete largura e maior que o limite  ofsetx ${offset.x}  limite $tamanhoDisponivel ")
+                    offset = OffsetDesenho(offsetDesenho.x,offset.y+20)
+                }
+                pagina.canvas.drawText(t,offset.x.toFloat(),offset.y.toFloat(),paint)
+                offset= OffsetDesenho(x=offset.x+medidaDoTexto.toInt()+5,y=offset.y)
+            }
+           /* while (!texto.isBlank()){
                 Log.d("CriadorPdf","medidas do offset no wile $x $y")
                 Log.d("criardor pdf","texto ${texto}")
                 val medidaDoTexto= paint.measureText(texto)
@@ -176,9 +193,9 @@ class CriadorDePfd(private val contexto: Context) {
                 }
 
                 Log.d("CriadorPdf","medidas do offset no wile $x $y")
-            }
+            }*/
 
-            return offset.copy(x=offsetDesenho.x,y=offsetDesenho.y+offsetDesenho.y)
+            return offset.copy(x=offsetDesenho.x,y=offset.y+20)
         }
 
         return OffsetDesenho(offsetDesenho.x,offsetDesenho.y+y)
@@ -197,9 +214,9 @@ class CriadorDePfd(private val contexto: Context) {
         listaDeProdutos.forEach {
          Log.d("CriadorPdf","desenhando produto offsetAtual x=${offset.x} y=${offset.y}")
         val  offsetAux=desenheTexto(pagina[0],paint,it.nomePrd,offset.copy(x=offset.x,y=offset.y+20),(posicoes[1].x))
-                   desenheTexto(pagina[0],paint,it.qnt.toString(),OffsetDesenho(x=posicoes[1].x,y=offset.y+20),posicoes[2].x)
-                   desenheTexto(pagina[0],paint,it.preco.toString().formatarPreco(),offset.copy(x=posicoes[2].x,y=offset.y+20),posicoes[3].x)
-                   desenheTexto(pagina[0],paint,it.total.toString().formatarPreco(),offset.copy(x=posicoes[3].x,y=offset.y+20),pagina[0].info.pageWidth-50)
+                       desenheTexto(pagina[0],paint,it.qnt.toString(),OffsetDesenho(x=posicoes[1].x,y=offset.y+20),posicoes[2].x)
+                       desenheTexto(pagina[0],paint,it.preco.toString().formatarPreco(),offset.copy(x=posicoes[2].x,y=offset.y+20),posicoes[3].x)
+                       desenheTexto(pagina[0],paint,it.total.toString().formatarPreco(),offset.copy(x=posicoes[3].x,y=offset.y+20),pagina[0].info.pageWidth-50)
             offset=offsetAux.copy(x=posicoes[0].x,y=offsetAux.y+5)
             Log.d("CriadorPdf","desenhando produto offsetFinaloop x=${offset.x} y=${offset.y}")
             if(offset.y>pagina[0].info.pageHeight-100){

@@ -14,7 +14,9 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes.ListaDeClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
-
+/**
+ * ponto de entrada para clientes responsavael pro apresentacate as composicoes de clinentes
+ * */
 @Composable
 fun ApresentacaoDeClientes(vm: ViewModelCliente,modifier: Modifier=Modifier,windowSize: WindowSizeClass){
     when{
@@ -25,7 +27,9 @@ fun ApresentacaoDeClientes(vm: ViewModelCliente,modifier: Modifier=Modifier,wind
     }
 
 }
-
+/**
+ * visualizacao no formato compat
+ * */
 @Composable
 private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modifier,windowSizeClass: WindowSizeClass){
     val telaVisualizada=vm.telaVisualizada.collectAsState()
@@ -38,7 +42,9 @@ private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modif
 
     }
 }
-
+/**
+ * visualizacao no formato expandido
+ * */
 @Composable
 private fun ListaDeClientesExpandida(modifier: Modifier= Modifier,vm: ViewModelCliente,windowSizeClass: WindowSizeClass){
     Row(modifier = modifier.padding(horizontal = 5.dp)) {

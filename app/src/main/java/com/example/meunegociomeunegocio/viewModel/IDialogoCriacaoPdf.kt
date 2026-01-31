@@ -14,4 +14,5 @@ interface IDialogoCriacaoPdf {
     fun abrirDialogo()
     fun fecharDialogo()
     fun criarPdf(uri:Uri?)
+    fun limparEnvio()
 }

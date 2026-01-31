@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.viewModel.ViewModelCadastroDeCliente
-
+/**
+ * Ponto de entrada para apresentacao de clientes
+ * */
 @Composable
 fun CadastroDeClientes(modifier: Modifier = Modifier,windowSizeClass: WindowSizeClass,vm: ViewModelCadastroDeCliente,acaoDeVoutar:()->Unit){
     when{

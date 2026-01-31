@@ -14,16 +14,8 @@ class FormatoPreco: InputTransformation {
     private val Tag="Formatacao de Preco"
     override fun TextFieldBuffer.transformInput() {
         val textoLimpo = asCharSequence().replace(Regex("\\D"),"").toString().toInt().toString()
-        val textoFormatado=when(textoLimpo.length){
-            1->"0,0${textoLimpo}"
-            2->"0,${textoLimpo}"
-            else ->{
-                val parteInteira=textoLimpo.substring(0,textoLimpo.length-2)
-                val parteDecimal=textoLimpo.substring(textoLimpo.length-2)
-                "$parteInteira,$parteDecimal"
-            }
-        }
-        replace(0,length,textoFormatado)
+        var double = textoLimpo.toInt()/100.0
+        replace(0,length,String.format("%.2f",double))
         placeCursorAtEnd()
 
     }

@@ -76,17 +76,20 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelRequisicoes
 import kotlinx.coroutines.launch
 
 @Composable
-fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
+fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier,acaoNavegarEdicao:(Int : Int)-> Unit){
 
 
     if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
-        ListaCompat(windowSizeClass = windowSizeClass, vm = vm,modifier)
+        ListaCompat(windowSizeClass = windowSizeClass, vm = vm,modifier, acaoNavegarEdicao = acaoNavegarEdicao)
     else{
-        ListaExpandida(windowSizeClass = windowSizeClass, vm = vm,modifier)
+        ListaExpandida(windowSizeClass = windowSizeClass, vm = vm,modifier,acaoNavegarEdicao)
     }
     SnackbarHost(vm.snackbarHostState)
 }
-
+/**
+ * dialogo de criacao de pdfs chamdo quando e nessesaria criar os pdfs pois ele e responsavel por
+ * avisar aque e nessesesario dizer aonde vai ser dalvo o arquivo
+ * */
  @Composable
  fun DialogoCriarPdf(interfaceDeDialogo: IDialogoCriacaoPdf,acaoFimDeEmvio:(()->Unit)?=null) {
      val dialogoMontarPdf =
@@ -109,8 +112,10 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
                  intent.putExtra(Intent.EXTRA_STREAM, envioDasRequisicoes.value)
                  intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                  intenteEnvioRequisicao.launch(Intent.createChooser(intent, "Enviar Arquivo"))
+                 interfaceDeDialogo.limparEnvio()
              } catch (e: Exception) {
                  Log.d("ExibicaoDaRequisicao", "erro ao enviar arquivo")
+                 interfaceDeDialogo.limparEnvio()
              }
 
          }
@@ -193,7 +198,9 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
              }
          }
  }
-
+/**
+ * os botores utilizados no dialogo de criacao de pdfs
+ * */
  @Composable//
  private fun BotoesDialogo(
      interfaceDeDialogo: IDialogoCriacaoPdf,
@@ -267,7 +274,7 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
 
 
 @Composable
-private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
+private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier,acaoNavegarEdicao:(Int : Int)-> Unit){
 
     val telaInterna=vm.telaInternasRequisicoes.collectAsStateWithLifecycle()
 
@@ -276,7 +283,7 @@ private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoe
             Lista(modifier=modifier,vm,windowSizeClass = windowSizeClass,acao = {
                 Log.d("listaconmpat","mudanado tela interna")
                 vm.mudarId(it)
-                vm.mostrarRequisicao(it) })}
+                vm.mostrarRequisicao(it) },acaoNavegarEdicao)}
         is TelasInternasDeRequisicoes.Requisicao -> {
             ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
         }
@@ -285,25 +292,25 @@ private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoe
 }
 
 @Composable
-private fun   ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier){
+private fun   ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,modifier: Modifier=Modifier,acaoNavegarEdicao: (Int) -> Unit){
 
     val telaInterna=vm.telaInternasRequisicoes.collectAsStateWithLifecycle()
     Row(modifier = Modifier.fillMaxWidth()) {
         Lista(modifier= Modifier.fillMaxWidth(0.4f),vm,windowSizeClass = windowSizeClass, acao = { vm.mudarId(it)
-                                                                            vm.mostrarRequisicao(it) })
+                                                                            vm.mostrarRequisicao(it) },acaoNavegarEdicao)
         VerticalDivider(Modifier.padding(horizontal = 15.dp))
         ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
 
     }
 }
 @Composable
-private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSizeClass: WindowSizeClass, acao:(Int)->Unit){
+private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSizeClass: WindowSizeClass, acao:(Int)->Unit,acaoNavegarEdicao:(Int)->Unit){
     val estadosDeLoadCaregamento =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     Column(modifier = modifier.padding(top = 10.dp)) {
     BarraDePesquisaRequisicoes(vm = vm, Modifier
         .align(Alignment.CenterHorizontally)
         .fillMaxWidth()
-        .padding(horizontal = 5.dp),windowSizeClass)
+        .padding(horizontal = 5.dp),windowSizeClass,acaoNavegarEdicao)
     LazyColumn(modifier = Modifier) {
         stickyHeader {
             CabesalhoRequisicao(windowSizeClass = windowSizeClass)
@@ -317,7 +324,7 @@ private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSi
             is EstadosDeLoadCaregamento.Caregado<*> -> {
                 val lista = estadosDeLoadCaregamento.value as EstadosDeLoadCaregamento.Caregado<List<DadosDaRequisicao>>
                 items(items = lista.obj) {
-                    ItemRwquisicao(it, windowSizeClass = windowSizeClass, acao = acao)
+                    ItemRwquisicao(it, windowSizeClass = windowSizeClass, acao = acao, acaoNavegarEdicao = acaoNavegarEdicao)
                 }
             }
                 is EstadosDeLoadCaregamento.Erro -> {}
@@ -333,7 +340,7 @@ private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSi
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun BarraDePesquisaRequisicoes(vm: ViewModelRequisicoes,modifier: Modifier=Modifier,windowSizeClass: WindowSizeClass){
+private fun BarraDePesquisaRequisicoes(vm: ViewModelRequisicoes,modifier: Modifier=Modifier,windowSizeClass: WindowSizeClass,acaoNavegarEdicao: (Int) -> Unit){
     val  searchBarState = rememberSearchBarState()
     val query =remember { mutableStateOf("") }
     val expandido=remember { mutableStateOf(false) }
@@ -410,7 +417,7 @@ private fun BarraDePesquisaRequisicoes(vm: ViewModelRequisicoes,modifier: Modifi
                                        vm.mostrarRequisicao(it)
                                    }
 
-                               })
+                               }, acaoNavegarEdicao = {})
                        }
                    }
                    else -> {}
@@ -483,8 +490,9 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                 }
 
                 NomeCliente(requisicao.obj.cliente.nome, modifier = Modifier.padding(bottom = 5.dp))
-                Observacao(requisicao.obj.requisicao.obs, modifier = Modifier.padding(bottom = 5.dp))
-                Descricao(requisicao.obj.requisicao.desc, modifier = Modifier.padding(bottom = 5.dp))
+                Observacao(requisicao.obj.requisicao.obs?:"", modifier = Modifier.padding(bottom = 5.dp))
+
+                Descricao(requisicao.obj.requisicao.desc?:"", modifier = Modifier.padding(bottom = 5.dp))
                 Custo(vm, modifier = Modifier.padding(bottom = 5.dp))
                 Estado(requisicao.obj.estado.descricao)
                 if(requisicao.obj.estado.descricao!="Cancelado"&& requisicao.obj.estado.descricao!="Entregue") {
@@ -569,6 +577,7 @@ private fun Observacao(obs:String,modifier: Modifier=Modifier){
 
 @Composable
 private fun Descricao(dsc:String,modifier: Modifier=Modifier){
+
     Row(modifier = modifier) {
         Text("Descricao : "+dsc, Modifier.padding(5.dp))
 
@@ -641,7 +650,7 @@ private fun ListaDeEstados(vm: ViewModelRequisicoes){
 }
 
 @Composable
-private fun ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes){
+private fun ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes,acaoNavegarEdicao: (Int) -> Unit){
     val estadosDeLoadCaregamento =vm.fluxoTodasAsRequisicoes.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     when(estadosDeLoadCaregamento.value){
         is EstadosDeLoadCaregamento.Empty -> {}
@@ -655,7 +664,7 @@ private fun ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisi
                 }
 
                 items(items = lista.obj) {
-                    ItemRwquisicao(it, windowSizeClass = windowSizeClass)
+                    ItemRwquisicao(it, windowSizeClass = windowSizeClass, acaoNavegarEdicao = acaoNavegarEdicao)
                 }
             }
         }
@@ -665,7 +674,7 @@ private fun ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequisi
 
 @Composable
 private fun ItemRwquisicao(dados: DadosDaRequisicao,windowSizeClass: WindowSizeClass,
-                           acao:(Int)->Unit= {}){
+                           acao:(Int)->Unit= {},acaoNavegarEdicao: (Int) -> Unit){
 
 
 
@@ -699,10 +708,10 @@ private fun ItemRwquisicao(dados: DadosDaRequisicao,windowSizeClass: WindowSizeC
 
             }
             FlowRow(Modifier.align(Alignment.CenterEnd )) {
-                IconButton ({},modifier= Modifier
+                IconButton ({acaoNavegarEdicao(dados.requisicao.id)},modifier= Modifier
                     .size(30.dp)
                     .padding(end = 3.dp)) {
-                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
+                    Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "Editar requisicao")
                 }
 
                 IconButton ({},modifier= Modifier

@@ -5,11 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
+import androidx.navigation.toRoute
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.adicaoDeProdutos.AdicaoDePRodutos
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ApresentacaoDeClientes
@@ -17,9 +17,8 @@ import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ApresentacaoProdu
 import com.example.meunegociomeunegocio.apresentacaoRequisicoes.ApresentacaoDeRequisicao
 import com.example.meunegociomeunegocio.cadastroDeClientes.CadastroDeClientes
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.ApresentacaoCriarRequisicao
-import com.example.meunegociomeunegocio.repositorioRom.EstadoRequisicao
-import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.meunegociomeunegocio.viewModel.ViewModelAdicaoDeProdutos
+import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 
 @Composable
 fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifier: Modifier=Modifier,
@@ -34,7 +33,7 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
                 avisoDeDestino(DestinosDeNavegacao.Requisicoes)
                 acaoMostrarBotaoDeAdicionar()
             }
-            ApresentacaoDeRequisicao(modifier = modifier,windowSize = windowSize,hiltViewModel())
+            ApresentacaoDeRequisicao(modifier = modifier,windowSize = windowSize,hiltViewModel(),{navController.navigate(DestinosDeNavegacao.AdicaoDeRequisicoes(it))})
         }
 
         composable<DestinosDeNavegacao.Clientes> {
@@ -49,19 +48,20 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
                 avisoDeDestino(DestinosDeNavegacao.Produtos)
                 acaoMostrarBotaoDeAdicionar()
             }
-            ApresentacaoProdutos(vm = hiltViewModel(), modifier = modifier,windowSize = windowSize)
+            ApresentacaoProdutos(vm = hiltViewModel(), modifier = modifier,windowSize = windowSize, acaoDeEdicaoDeProdutos = {navController.navigate(DestinosDeNavegacao.AdicaoDeProdutos(it))})
         }
         composable<DestinosDeNavegacao.AdicaoDeCleintes>{
             LaunchedEffect(Unit){
                 acaoOcultarBotaoDeAdicionar()
             }
-            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel(), acaoDeVoutar = {navController.popBackStack()})
+            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel(), acaoDeVoutar = { navController.popBackStack() })
         }
         composable<DestinosDeNavegacao.AdicaoDeProdutos>{
             LaunchedEffect(Unit) {
                 acaoOcultarBotaoDeAdicionar()
             }
-            AdicaoDePRodutos(vm = hiltViewModel(),acaoDeVoutar = {navController.popBackStack()})
+            var prodId = it.toRoute<DestinosDeNavegacao.AdicaoDeProdutos>()
+            AdicaoDePRodutos(vm = hiltViewModel<ViewModelAdicaoDeProdutos, ViewModelAdicaoDeProdutos.Fabrica>{it.criar(prodId.idProduto)},acaoDeVoutar = {navController.popBackStack()})
         }
 
         composable<DestinosDeNavegacao.AdicaoDeRequisicoes> {
@@ -69,7 +69,9 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
                 acaoOcultarBotaoDeAdicionar()
                 Log.d(Tag,"AdicaoDeRequisicoes")
             }
-            ApresentacaoCriarRequisicao(hiltViewModel(),windowSize,acaoDeVoutar = {navController.popBackStack()})
+            var adicoaRequisicao : DestinosDeNavegacao.AdicaoDeRequisicoes =it.toRoute<DestinosDeNavegacao.AdicaoDeRequisicoes>()
+            Log.d(Tag,"AdicaoDeRequisicoes ${adicoaRequisicao}")
+            ApresentacaoCriarRequisicao(hiltViewModel<ViewModelCriarRequisicoes,ViewModelCriarRequisicoes.Factorory>{it.criar(adicoaRequisicao.idRequisicao)},windowSize,acaoDeVoutar = {navController.popBackStack()})
         }
 
         dialog<DestinosDeNavegacao.Dialogos.NovoCliente>{

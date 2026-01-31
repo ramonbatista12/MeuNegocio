@@ -52,7 +52,7 @@ fun CadastroCompat(vm: ViewModelCadastroDeCliente,acaoDeVoltar:()->Unit){
                 CadastraEndereco(vm)
             }
             is EstagiosDeCadastroClientes.Telefone -> {
-                CadastraTelefone(vm)
+                CadastraTelefone(vm,acaoDevoutar = acaoDeVoltar)
             }
         }
            SnackbarHost(vm.snackbarHostState)
@@ -134,7 +134,7 @@ private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Un
                 coroutineScope.launch {
                     val split=telefone.text.toString().split(" ")
                     vm.guardaTelefoneCriado(if(split.size==1)Telefone(0,0,"","") else Telefone(0,0,split[0],split[1]))
-                    vm.salvar({acaoDevoutar()})
+                    vm.salvar({ acaoDevoutar() })
                 }
 
 

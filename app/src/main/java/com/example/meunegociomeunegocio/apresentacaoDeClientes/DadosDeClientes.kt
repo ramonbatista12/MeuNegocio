@@ -123,7 +123,9 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
     }
 
 }
-
+/**
+ * Apresenta a s inicias dentro de um cirlculo
+ * */
 
 @Composable
 private fun Iniciais(nome:String,modifier: Modifier= Modifier,size:Dp=100.dp,sp:Int=30){
@@ -167,7 +169,9 @@ private fun BaraSelecao(modifier: Modifier= Modifier,acao: (TelasInternasDadosDe
         }
     }
 }
-
+/**
+ * Apresenta o cpf ou cnpj
+ * */
 @Composable
 private fun cpfCnpj(cpf:String?,cnpj:String?,modifier: Modifier= Modifier){
     if(cpf==null&&cnpj==null) return
@@ -187,7 +191,9 @@ private fun ItemDeSelecao(acao:()->Unit, modifier: Modifier= Modifier,item: Bara
 
     }
 }
-
+/**
+ * representa as opcoes de selecao  dos dados dos clientes como lista de endereco e lista de telefone
+ * */
 sealed class BaraDeSelecao(val icone:Int, val nome: String, val selecao: TelasInternasDadosDeClientes){
 object SelecaoTelefone: BaraDeSelecao(R.drawable.telefone,"Telefone" ,TelasInternasDadosDeClientes.Telefone)
     object SelecaoEndereco: BaraDeSelecao(R.drawable.endereco,"Endereco" ,TelasInternasDadosDeClientes.Endereco)
@@ -195,7 +201,9 @@ object SelecaoTelefone: BaraDeSelecao(R.drawable.telefone,"Telefone" ,TelasInter
         val listaDeSelecao= listOf(SelecaoTelefone,SelecaoEndereco)
     }
 }
-
+/**
+ * lista de enderecos
+ * */
 @Composable
 private fun ListaDeEnderecos(modifier: Modifier,list: List<Endereco>){
     LazyColumn(modifier) {
@@ -204,6 +212,9 @@ private fun ListaDeEnderecos(modifier: Modifier,list: List<Endereco>){
         }
     }
 }
+/**
+ * item da lista de endereco
+ * */
 @Composable
 private fun Endereco(endr: Endereco ){
 
@@ -228,6 +239,9 @@ private fun Endereco(endr: Endereco ){
      }
     }
 }
+/**
+ * lista de telefones
+ * */
 @Composable
 private fun ListaDeTelefones(modifier: Modifier= Modifier,list: List<Telefone> ){
     LazyColumn(modifier = modifier) {
@@ -236,6 +250,10 @@ private fun ListaDeTelefones(modifier: Modifier= Modifier,list: List<Telefone> )
         }
     }
 }
+/**
+ * item da lista de telefone
+ * */
+
 @Composable
 private fun Telefone(telefone: Telefone
 ){

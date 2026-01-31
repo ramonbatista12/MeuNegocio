@@ -13,10 +13,12 @@ import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -32,7 +34,11 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
     val fluxoTodasAsRequisicoes =repositorio.fluxoRequisicao().map {
         if(it==null ||it.isEmpty()) EstadosDeLoadCaregamento.Empty
         else EstadosDeLoadCaregamento.Caregado(it)
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000), // Mantém o fluxo ativo por 5s após a UI sumir
+        initialValue = EstadosDeLoadCaregamento.load
+    )
     val telaInternasRequisicoes= MutableStateFlow<TelasInternasDeRequisicoes>(TelasInternasDeRequisicoes.Lista)
     val estadoListaHistorico= MutableStateFlow<ListaHistorico>(ListaHistorico.Lista)
     val fluxoDadosDeRequisicao = fluxoDeId.flatMapLatest{
@@ -164,6 +170,11 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
         }
 
     }
+
+    override fun limparEnvio() {
+        this.envioDerequisicao.value=null
+    }
+
     override fun abrirDialogo(){
         coroutineScope.launch {
             _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Iniciando)

@@ -107,15 +107,25 @@ interface Daos{
    @Delete
    suspend fun apagarEstado(estado: EntidadeEstado)
    //querys na tabela associativa requisicao produto
+   @Transaction
    @Insert
    suspend fun insertProdutosRequisitados(list: List<EntidadeRequesicaoProduto>)
+   @Transaction
    @Query("delete from requisicao_produto_servico where id_req=:id")
    suspend fun apagarProdutoPorRequisicao(id:Int)
    @Update
    suspend fun atualizarProdutoRequisicao(produto: EntidadeRequesicaoProduto)
+   @Update
+   suspend fun atualizarProdutosRequisicao(list: List<EntidadeRequesicaoProduto>)
    @Delete
    suspend fun excluitProdutoRequisitado(produto: EntidadeRequesicaoProduto)
+   @Transaction
+   suspend fun salvarEdicaoCompleta(requisicao: EntidadeRequisicao, produtos: List<EntidadeRequesicaoProduto>){
+       atualizarRequisicao(requisicao)
+       apagarProdutoPorRequisicao(requisicao.id)
+       insertProdutosRequisitados(produtos)
 
+   }
 
 
 }
