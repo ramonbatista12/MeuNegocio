@@ -14,7 +14,7 @@ sealed class DestinosDeNavegacao{
     @Serializable
     object Requisicoes: DestinosDeNavegacao()
     @Serializable
-    object AdicaoDeCleintes: DestinosDeNavegacao()
+    data class AdicaoDeCleintes(val idCliente: Int? =null): DestinosDeNavegacao()
     @Serializable
     data class AdicaoDeProdutos(val idProduto: Int?=null): DestinosDeNavegacao()
     @Serializable

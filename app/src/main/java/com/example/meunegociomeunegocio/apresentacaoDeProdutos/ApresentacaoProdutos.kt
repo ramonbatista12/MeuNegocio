@@ -31,7 +31,7 @@ fun ApresentacaoProdutos(modifier: Modifier=Modifier,
               Row(modifier = modifier) {
                   ListaDeProdutosExpandido(Modifier,vm,windowSize,acaoDeEdicaoDeProdutos)
                   VerticalDivider(Modifier.padding(horizontal = 5.dp))
-                  DetalhesDeProdutosEspandido(vm,modifier)
+                  DetalhesDeProdutosEspandido(vm,modifier,windowSize)
                 }
           }
           else -> {

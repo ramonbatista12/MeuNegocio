@@ -19,6 +19,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -42,6 +43,7 @@ class ViewModelCriarRequisicoes @AssistedInject constructor(private val reposito
     private val fluxoDeId= MutableStateFlow(0)
     private val  validador=AuxiliarValidacaoCriarRequiscao()
     private var listaDeIdsDePRodutos = mutableListOf<Int>()
+    private val _estadoLoadRequisicao = MutableStateFlow<EstadosDeLoadCaregamento>(EstadosDeLoadCaregamento.Empty)
     private var idEstado =0;
     //Par<Int,Int> vai cepresentar o id do produto e a quantidade
     private val listIdProdutos= MutableStateFlow<List<ProdutoSelecionado>>(emptyList())
@@ -70,6 +72,7 @@ class ViewModelCriarRequisicoes @AssistedInject constructor(private val reposito
          else
              EstadosDeLoadCaregamento.Caregado(it)
      }
+    val estadoDeLoadRequisicoes=_estadoLoadRequisicao
     val snapshotState = SnackbarHostState()
     override val caixaDeDialogoCriarPdf: MutableStateFlow<Boolean> =_caixaDedialogoRequisicao
     override val envioDerequisicao: MutableStateFlow<Uri?> = _envioDerequisicao
@@ -82,6 +85,7 @@ class ViewModelCriarRequisicoes @AssistedInject constructor(private val reposito
     fun caregarDados(id: Int){
 
         viewModelScope.launch {
+          _estadoLoadRequisicao.emit(EstadosDeLoadCaregamento.load)
           var dados=  repositorio.requisicaoPorId(id)
           var dado= dados.first()
             if(dado!=null){
@@ -95,7 +99,8 @@ class ViewModelCriarRequisicoes @AssistedInject constructor(private val reposito
                 produtosSelecionado.emit(map)
                 observacoes.emit(Pair(dado.requisicao.desc,dado.requisicao.obs))
             }
-
+             delay(1000)
+            _estadoLoadRequisicao.emit(EstadosDeLoadCaregamento.Caregado(Unit))
 
         }
     }

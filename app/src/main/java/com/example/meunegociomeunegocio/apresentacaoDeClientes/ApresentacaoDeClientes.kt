@@ -18,12 +18,12 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelCliente
  * ponto de entrada para clientes responsavael pro apresentacate as composicoes de clinentes
  * */
 @Composable
-fun ApresentacaoDeClientes(vm: ViewModelCliente,modifier: Modifier=Modifier,windowSize: WindowSizeClass){
+fun ApresentacaoDeClientes(vm: ViewModelCliente,modifier: Modifier=Modifier,windowSize: WindowSizeClass,acaoDeEdicao: (Int) -> Unit){
     when{
         windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)->{
-            ListaDeClientesExpandida(modifier,vm,windowSize)
+            ListaDeClientesExpandida(modifier,vm,windowSize,acaoDeEdicao)
         }
-        else -> ListaDeClientesCompat(vm,modifier,windowSize)
+        else -> ListaDeClientesCompat(vm,modifier,windowSize,acaoDeEdicao)
     }
 
 }
@@ -31,11 +31,11 @@ fun ApresentacaoDeClientes(vm: ViewModelCliente,modifier: Modifier=Modifier,wind
  * visualizacao no formato compat
  * */
 @Composable
-private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modifier,windowSizeClass: WindowSizeClass){
+private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modifier,windowSizeClass: WindowSizeClass,acaoDeEdicao:(Int)->Unit){
     val telaVisualizada=vm.telaVisualizada.collectAsState()
     when(telaVisualizada.value){
         is ListaDeClientes->ListaDeClientes(vm=vm, modifier = modifier)
-        is TelasInternasDeClientes.DadosDoCliente->DadosDeClientes(vm=vm, windowSizeClass = windowSizeClass, modifier = modifier)
+        is TelasInternasDeClientes.DadosDoCliente->DadosDeClientes(vm=vm, windowSizeClass = windowSizeClass, modifier = modifier, acaoEdicao = acaoDeEdicao)
         else -> {
             Log.d("ApresentacaoDeClientes","tela nao implementada")
         }
@@ -46,7 +46,7 @@ private fun ListaDeClientesCompat(vm: ViewModelCliente,modifier: Modifier= Modif
  * visualizacao no formato expandido
  * */
 @Composable
-private fun ListaDeClientesExpandida(modifier: Modifier= Modifier,vm: ViewModelCliente,windowSizeClass: WindowSizeClass){
+private fun ListaDeClientesExpandida(modifier: Modifier= Modifier,vm: ViewModelCliente,windowSizeClass: WindowSizeClass,acaoDeEdicao:(Int)->Unit){
     Row(modifier = modifier.padding(horizontal = 5.dp)) {
         ListaDeClientes(Modifier.fillMaxWidth(0.4f), vm = vm)
         VerticalDivider(Modifier.padding(horizontal = 15.dp))

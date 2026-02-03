@@ -40,8 +40,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.loads.DialogoLoad
+import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos
+import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
 import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
@@ -51,15 +55,17 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun DadosDeClientes(vm: ViewModelCliente, windowSizeClass: WindowSizeClass, modifier: Modifier=Modifier){
+fun DadosDeClientes(vm: ViewModelCliente, windowSizeClass: WindowSizeClass, modifier: Modifier=Modifier,acaoEdicao: (Int) -> Unit){
     val id =(vm.telaVisualizada.collectAsState().value as TelasInternasDeClientes.DadosDoCliente).idCliente
-    val load=  vm.dadosDocliente(id).collectAsState(initial = EstadosDeLoadCaregamento.load )
+    val load=  vm.dadosDocliente.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     when(load.value){
         is EstadosDeLoadCaregamento.load->{
-            CircularProgressIndicator(modifier = modifier.size(40.dp))
+            if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+            DialogoLoad("Dados do cliente", EstadosDeLoadCaregamento.load)
+            else Box(modifier = Modifier.fillMaxSize()) { LoadBox3pontinhos(Modifier.align(Alignment.Center), String = TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load) }
         }
         is EstadosDeLoadCaregamento.Caregado<*> ->{
-            DadosDeClientesImpl(vm, windowSizeClass = windowSizeClass, dadosDeClientes = (load.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj)
+            DadosDeClientesImpl(vm, windowSizeClass = windowSizeClass, dadosDeClientes = (load.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj, acaoEdicao = acaoEdicao)
           }
 
         else -> {Log.d("DadosDeClientes","erro")}
@@ -71,28 +77,37 @@ fun DadosDeClientes(vm: ViewModelCliente, windowSizeClass: WindowSizeClass, modi
 private fun DadosDeClientesImpl(vm: ViewModelCliente,
                                 modifier: Modifier= Modifier,
                                 windowSizeClass: WindowSizeClass,
-                                dadosDeClientes: DadosDeClientes){
+                                dadosDeClientes: DadosDeClientes,
+                                acaoEdicao: (Int) -> Unit){
     val coroutineScope = rememberCoroutineScope()
     val slecao=vm.daosClioente.collectAsState()
+    Box(){
+        IconButton(onClick = {coroutineScope.launch {vm.mudarTelaVisualizada(
+        TelasInternasDeClientes.ListaDeClientes)  }},modifier.padding(5.dp).align(Alignment.TopStart)) {
+        Icon(painterResource( R.drawable.baseline_arrow_back_24 ), contentDescription = null)
 
-    Column (modifier=Modifier.padding(all = 5.dp)){
-             IconButton(onClick = {coroutineScope.launch {vm.mudarTelaVisualizada(
-                 TelasInternasDeClientes.ListaDeClientes)  }},modifier.padding(5.dp)) {
-                 Icon(painterResource( R.drawable.baseline_arrow_back_24 ), contentDescription = null)
-
-             }
-             Iniciais(dadosDeClientes.cliente.nome,
-                     Modifier.align(Alignment.CenterHorizontally).padding(vertical = 20.dp),
-                     size = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) 200.dp else 100.dp,
-                     sp = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) 60 else 30)
-             Nome(dadosDeClientes.cliente.nome, Modifier.align(Alignment.CenterHorizontally).padding(start = 5.dp, end = 5.dp, bottom = 3.dp))
-             cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
-             BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }})
-             when(slecao.value){
-                 is TelasInternasDadosDeClientes.Telefone->ListaDeTelefones(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.telefones)
-                 is TelasInternasDadosDeClientes.Endereco->ListaDeEnderecos(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.enderecos)
-             }
     }
+
+    IconButton(onClick = {coroutineScope.launch {acaoEdicao(dadosDeClientes.cliente.id) }},modifier.padding(5.dp).align(Alignment.TopEnd)) {
+            Icon(painterResource(R.drawable.create_24), contentDescription = "Editar cliente")
+
+        }
+        Column (modifier=Modifier.padding(all = 5.dp).padding(top = 50.dp)){
+
+            Iniciais(dadosDeClientes.cliente.nome,
+                Modifier.align(Alignment.CenterHorizontally).padding(vertical = 20.dp),
+                size = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) 200.dp else 100.dp,
+                sp = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) 60 else 30)
+            Nome(dadosDeClientes.cliente.nome, Modifier.align(Alignment.CenterHorizontally).padding(start = 5.dp, end = 5.dp, bottom = 3.dp))
+            cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
+            BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }})
+            when(slecao.value){
+                is TelasInternasDadosDeClientes.Telefone->ListaDeTelefones(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.telefones)
+                is TelasInternasDadosDeClientes.Endereco->ListaDeEnderecos(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.enderecos)
+            }
+        }
+    }
+
 }
 @Composable
  fun DadosDeClientesExpandido(vm: ViewModelCliente,
@@ -120,6 +135,13 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
                 }
             }
         }
+        is EstadosDeLoadCaregamento.load->{
+            Box(Modifier.fillMaxSize()){
+                LoadBox3pontinhos(modifier=Modifier.align(Alignment.Center),String=TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load)
+            }
+        }
+        is EstadosDeLoadCaregamento.Empty->{}
+        is EstadosDeLoadCaregamento.Erro->{}
     }
 
 }
@@ -228,9 +250,7 @@ private fun Endereco(endr: Endereco ){
              IconButton(onClick = {}, Modifier.size(30.dp)) {
                  Icon(painterResource(R.drawable.endereco),null)
              }
-             IconButton(onClick = {},Modifier.size(30.dp)) {
-                 Icon(painterResource(R.drawable.create_24),null)
-             }
+
              IconButton(onClick = {},Modifier.size(30.dp)) {
                  Icon(painterResource(R.drawable.baseline_delete_24),null)
              }
@@ -269,9 +289,7 @@ private fun Telefone(telefone: Telefone
                 IconButton(onClick = {}, Modifier.size(30.dp)) {
                     Icon(painterResource(R.drawable.telefone),null)
                 }
-                IconButton(onClick = {},Modifier.size(30.dp)) {
-                    Icon(painterResource(R.drawable.create_24),null)
-                }
+
                 IconButton(onClick = {},Modifier.size(30.dp)) {
                     Icon(painterResource(R.drawable.baseline_delete_24),null)
                 }

@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.utilitario.AuxiliarValidacaoDadosDeProdutos
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -34,6 +35,7 @@ class ViewModelAdicaoDeProdutos @AssistedInject constructor(val repositorio: Rep
     private val _textFildStatePreco= TextFieldState()
     private val _textFildStateDescricao= TextFieldState()
     private val _servicoProduto = MutableStateFlow(false)
+    private val _estadoLoadProduto = MutableStateFlow<EstadosDeLoadCaregamento>(EstadosDeLoadCaregamento.Empty)
     private final val TAG="ViewModelAdicaoDeProdutos"
     val focoNome = FocusRequester()
     val focoPreco= FocusRequester()
@@ -42,37 +44,42 @@ class ViewModelAdicaoDeProdutos @AssistedInject constructor(val repositorio: Rep
     val textFildStateDescricao =_textFildStateDescricao
     val textFildPReco =_textFildStatePreco
     val servicoProduto =_servicoProduto
+    val loadProduto=_estadoLoadProduto
 
     val snackbarHostState= SnackbarHostState()
     init {
-        if(id!=null){
-           corotinesScope.launch(Dispatchers.IO) {
-               val produto =repositorio.fluxoPodutoPorID(id).first()
-               if(produto!=null){
-                   withContext(Dispatchers.Main) {
-                       _textFildStateNomeProduto.edit {
-                           replace(0,this.length,produto.nome)
-                       }
-                       _textFildStateNomeProduto.undoState.redo()
-                       _textFildStatePreco.edit{
-                           replace(0,this.length,produto.preco.toString())
-                       }
-                       _textFildStateDescricao.edit{
-                           replace(0,this.length,produto.descrisao)
-                       }
-                       _servicoProduto.emit(produto.servico)
-                       delay(100)
-                       focoDescricao.requestFocus()
-                       delay(100)
-                       focoPreco.requestFocus()
-                       delay(100)
-                       focoNome.requestFocus()
+        if(id!=null)caregarProduto()
+    }
+    private fun caregarProduto(){
+        corotinesScope.launch(Dispatchers.IO) {
+            _estadoLoadProduto.emit(EstadosDeLoadCaregamento.load)
+            val produto =repositorio.fluxoPodutoPorID(id!!).first()
+            if(produto!=null){
+                withContext(Dispatchers.Main) {
+                    _textFildStateNomeProduto.edit {
+                        replace(0,this.length,produto.nome)
+                    }
+                    _textFildStateNomeProduto.undoState.redo()
+                    _textFildStatePreco.edit{
+                        replace(0,this.length,produto.preco.toString())
+                    }
+                    _textFildStateDescricao.edit{
+                        replace(0,this.length,produto.descrisao)
+                    }
+                    _servicoProduto.emit(produto.servico)
+                    delay(100)
+                    focoDescricao.requestFocus()
+                    delay(100)
+                    focoPreco.requestFocus()
+                    delay(100)
+                    focoNome.requestFocus()
 
-                   }
+                }
 
-               }
+            }
+            delay(1000)
+            _estadoLoadProduto.emit(EstadosDeLoadCaregamento.Caregado(Unit))
 
-           }
         }
     }
     suspend fun adicionarProduto(produto: ProdutoServico,callback:()-> Unit){

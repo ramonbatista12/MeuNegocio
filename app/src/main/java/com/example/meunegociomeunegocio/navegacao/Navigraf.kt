@@ -41,7 +41,7 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
                 avisoDeDestino(DestinosDeNavegacao.Clientes)
                 acaoMostrarBotaoDeAdicionar()
             }
-            ApresentacaoDeClientes(vm = hiltViewModel(),modifier,windowSize = windowSize)
+            ApresentacaoDeClientes(vm = hiltViewModel(),modifier,windowSize = windowSize,{navController.navigate(DestinosDeNavegacao.AdicaoDeCleintes(id))})
         }
         composable<DestinosDeNavegacao.Produtos> {
             LaunchedEffect(Unit) {
@@ -54,6 +54,7 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
             LaunchedEffect(Unit){
                 acaoOcultarBotaoDeAdicionar()
             }
+            var cliente =it.toRoute<DestinosDeNavegacao.Clientes>()
             CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel(), acaoDeVoutar = { navController.popBackStack() })
         }
         composable<DestinosDeNavegacao.AdicaoDeProdutos>{

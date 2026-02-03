@@ -9,9 +9,12 @@ import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.map
 class ViewModelCliente @Inject constructor(private val repositorio: Repositorio) : ViewModel() {
     private val Tag = "ViewModelCliente"
     private val coroutineScope =viewModelScope
+    private val idCliente= MutableStateFlow<Int>(0)
     val telaVisualizada= MutableStateFlow<TelasInternasDeClientes>(TelasInternasDeClientes.ListaDeClientes)
     val daosClioente= MutableStateFlow<TelasInternasDadosDeClientes>(TelasInternasDadosDeClientes.Telefone)
     val pesquisa= MutableStateFlow<Pesquisa?>(null)
@@ -28,23 +32,48 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
         else EstadosDeLoadCaregamento.Caregado(it)
     }
     val fluxoDeDadosDeClientesPainelExpandido=telaVisualizada.flatMapLatest{
-        when(it){
-            is TelasInternasDeClientes.DadosDoCliente -> {
-                repositorio.fluxoDadosDoCliente(it.idCliente).map {
-                    if(it==null)EstadosDeLoadCaregamento.Empty
-                    else EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
+        flow{
+            emit(EstadosDeLoadCaregamento.load)
+            delay(1000)
+            when(it){
+                is TelasInternasDeClientes.DadosDoCliente -> {
+                   var dados= repositorio.fluxoDadosDoCliente(it.idCliente).map {
+                        if(it==null)EstadosDeLoadCaregamento.Empty
+                        else EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
+                    }
+                    emitAll(dados)
+                }
+                else ->{
+                    emit(EstadosDeLoadCaregamento.Empty)
                 }
             }
-            else ->{
-                flowOf(EstadosDeLoadCaregamento.Empty)
-            }
         }
+
     }
     val fluxoDePesquisa=pesquisa.flatMapLatest {
         Log.d("ViewModelCliente","pesquisa fluxoDePesquisa ")
          if (it==null) emptyFlow()
          else repositorio.pesquisaClientes(it.pesquisa)
     }
+    val dadosDocliente =telaVisualizada.flatMapLatest {
+        flow{
+            emit(EstadosDeLoadCaregamento.load)
+            delay(1000)
+            when(it){
+                is TelasInternasDeClientes.DadosDoCliente -> {
+                 val dados=   repositorio.fluxoDadosDoCliente(it.idCliente).map {
+                        if(it!=null)EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
+                        else EstadosDeLoadCaregamento.Empty
+                    }
+
+                    emitAll(dados)
+                }
+                else-> emit(EstadosDeLoadCaregamento.Empty)
+            }
+            }
+        }
+
+
     suspend fun adicionarCliente(cliente: Cliente)=repositorio.inserirCliente(cliente)
     suspend fun apagarCliente(cliente: Cliente)=repositorio.apagarCliente(cliente)
     suspend fun modificarCliente(cliente: Cliente)=repositorio.atuAlizarCliente(cliente)
@@ -56,6 +85,7 @@ class ViewModelCliente @Inject constructor(private val repositorio: Repositorio)
         this.pesquisa.value=pesquisa
     }
     fun dadosDocliente(id:Int)=repositorio.fluxoDadosDoCliente(id).map {
+        delay(1000)
         if(it==null)EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(DadosDeClientes(Cliente(0,"","",""), emptyList(),emptyList())) //EstadosDeLoad.Empty
         else EstadosDeLoadCaregamento.Caregado<DadosDeClientes>(it)
     }

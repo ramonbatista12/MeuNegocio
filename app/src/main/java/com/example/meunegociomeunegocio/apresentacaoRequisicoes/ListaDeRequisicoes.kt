@@ -62,8 +62,12 @@ import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutosRequisitados
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatData
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatarPreco
+import com.example.meunegociomeunegocio.loads.DialogoLoad
 import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
+import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos
+import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
+import com.example.meunegociomeunegocio.repositorioRom.Estado
 import com.example.meunegociomeunegocio.repositorioRom.Mudanca
 import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
@@ -468,7 +472,9 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
         val estadoListaHistorico =vm.estadoListaHistorico.collectAsStateWithLifecycle(ListaHistorico.Lista)
         val envioDasRequisicoes =vm.envioDerequisicao.collectAsStateWithLifecycle(null)
         val  context =LocalContext.current
+        LaunchedEffect(requisicao.value) {
 
+        }
         when(requisicao.value){
             is EstadosDeLoadCaregamento.Empty -> {}
             is EstadosDeLoadCaregamento.Caregado<*> -> {
@@ -549,7 +555,11 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
             }
                 DialogoCriarPdf(vm,)
             }
-            is EstadosDeLoadCaregamento.load -> {}
+            is EstadosDeLoadCaregamento.load -> {
+                if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+                DialogoLoad(TitulosDeLoad.Requisicoes.titulo,requisicao.value)
+                else  Box(modifier.fillMaxSize()){LoadBox3pontinhos(Modifier.align(Alignment.Center),TitulosDeLoad.Requisicoes.titulo, requisicao.value)}
+            }
             else -> {}
         }
 
@@ -708,6 +718,7 @@ private fun ItemRwquisicao(dados: DadosDaRequisicao,windowSizeClass: WindowSizeC
 
             }
             FlowRow(Modifier.align(Alignment.CenterEnd )) {
+                if(dados.estado.descricao!="Cancelado"&& dados.estado.descricao!="Entregue")
                 IconButton ({acaoNavegarEdicao(dados.requisicao.id)},modifier= Modifier
                     .size(30.dp)
                     .padding(end = 3.dp)) {

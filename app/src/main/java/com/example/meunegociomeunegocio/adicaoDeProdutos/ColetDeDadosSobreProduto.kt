@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoPreco
+import com.example.meunegociomeunegocio.loads.DialogoLoad
+import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.viewModel.ViewModelAdicaoDeProdutos
 import kotlinx.coroutines.launch
@@ -37,6 +39,7 @@ fun AdicaoDePRodutos(vm: ViewModelAdicaoDeProdutos,modifier: Modifier= Modifier,
     val descricao = vm.textFildStateDescricao
     val servico = vm.servicoProduto.collectAsState()
     val corotinesScope= rememberCoroutineScope()
+    val loadProduto =vm.loadProduto.collectAsState()
     Column(Modifier.fillMaxWidth().padding(5.dp),horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
         Text(text = "Adicionar Produto", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
         OutlinedTextField(
@@ -91,5 +94,5 @@ fun AdicaoDePRodutos(vm: ViewModelAdicaoDeProdutos,modifier: Modifier= Modifier,
     }
         SnackbarHost(hostState = vm.snackbarHostState)
     }
-
+    DialogoLoad(TitulosDeLoad.ProdutosServicos.titulo,loadProduto.value)
 }

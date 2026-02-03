@@ -14,12 +14,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 
 @HiltViewModel
 class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositorio,private val pdf: CriadorDePfd): ViewModel(),
@@ -42,12 +44,19 @@ class ViewModelRequisicoes@Inject constructor(private val repositorio: Repositor
     val telaInternasRequisicoes= MutableStateFlow<TelasInternasDeRequisicoes>(TelasInternasDeRequisicoes.Lista)
     val estadoListaHistorico= MutableStateFlow<ListaHistorico>(ListaHistorico.Lista)
     val fluxoDadosDeRequisicao = fluxoDeId.flatMapLatest{
-        repositorio.requisicaoPorId(it).map {
-            if(it==null)
-                EstadosDeLoadCaregamento.Empty
-            else
-                EstadosDeLoadCaregamento.Caregado(it)
+        flow {
+            emit(EstadosDeLoadCaregamento.load)
+            kotlinx.coroutines.delay(1000)
+            var dados=repositorio.requisicaoPorId(it).map {
+                if(it==null)
+                    EstadosDeLoadCaregamento.Empty
+                else
+                    EstadosDeLoadCaregamento.Caregado(it)
+            }
+            emitAll(dados )
         }
+
+
     }
     val fluxoHistoricoDeMudancas= fluxoDeId.flatMapLatest {
 

@@ -221,10 +221,12 @@ private fun CirculoDeInicias(nome: String,id:Int=0){
     val iniciais= remember{mutableStateOf("")}
     val color= remember{ mutableStateOf(Cores.lisColors[0])}
     LaunchedEffect(nome) {
+        Log.d("CirculoDeInicias","LaunchedEffect !nome :$nome !  $id")
         val split =nome.split(Regex("\\s"))
-        if (split.size==2){
-            iniciais.value=split[0].first().toString()+split[1].first().toString()
-
+        if (split.size>=2){
+            val inicialPrimeiroNome =split[0].first()
+            val inicialsegundoNome= if(split[1].isEmpty()) "" else split[1].first()
+            iniciais.value=inicialPrimeiroNome.toString()+inicialsegundoNome.toString()
         }
         else
             iniciais.value=split[0].first().toString()

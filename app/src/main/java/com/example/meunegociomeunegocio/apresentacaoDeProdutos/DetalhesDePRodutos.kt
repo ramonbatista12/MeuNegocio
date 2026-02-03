@@ -1,6 +1,8 @@
 package com.example.meunegociomeunegocio.apresentacaoDeProdutos
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -13,7 +15,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.loads.DialogoLoad
+import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos
+import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.ProdutoServico
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
@@ -34,7 +40,7 @@ fun DetalhesDeProdutosCompate(vm:ViewModelProdutos,modifier: Modifier= Modifier)
             }
             is EstadosDeLoadCaregamento.Erro -> {}
             is EstadosDeLoadCaregamento.load -> {
-                LinearProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                DialogoLoad(TitulosDeLoad.ProdutosServicos.titulo,produto.value)
             }
             is EstadosDeLoadCaregamento.Empty -> {}
         }
@@ -43,7 +49,7 @@ fun DetalhesDeProdutosCompate(vm:ViewModelProdutos,modifier: Modifier= Modifier)
 }
 
 @Composable
-fun DetalhesDeProdutosEspandido(vm:ViewModelProdutos,modifier: Modifier= Modifier){
+fun DetalhesDeProdutosEspandido(vm:ViewModelProdutos,modifier: Modifier= Modifier,windowSizeClass: WindowSizeClass){
     val produto =vm.produto.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
     Column(modifier = modifier) {
         when(produto.value){
@@ -56,7 +62,9 @@ fun DetalhesDeProdutosEspandido(vm:ViewModelProdutos,modifier: Modifier= Modifie
             }
             is EstadosDeLoadCaregamento.Erro -> {}
             is EstadosDeLoadCaregamento.load -> {
-                LinearProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
+                DialogoLoad(TitulosDeLoad.ProdutosServicos.titulo,produto.value)
+                else Box(modifier = Modifier.fillMaxSize()){ LoadBox3pontinhos(Modifier.align(Alignment.Center),TitulosDeLoad.ProdutosServicos.titulo,produto.value) }
             }
             is EstadosDeLoadCaregamento.Empty -> {}
         }

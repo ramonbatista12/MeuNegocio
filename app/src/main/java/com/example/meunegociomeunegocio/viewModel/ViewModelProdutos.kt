@@ -9,9 +9,12 @@ import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 
 @HiltViewModel
 class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio) : ViewModel(),
@@ -29,10 +32,16 @@ class ViewModelProdutos @Inject constructor(private val repositorio: Repositorio
     private val _estadoDeExclusao=MutableStateFlow<EstadoLoadAcoes>(EstadoLoadAcoes.Iniciando)
     val telasDeProdutos=_telasDeProdutos
     val produto = idProduto.flatMapLatest {
-        repositorio.fluxoPodutoPorID(it).map {
-            if(it==null) EstadosDeLoadCaregamento.Empty
-            else EstadosDeLoadCaregamento.Caregado(it)
+        flow {
+            emit(EstadosDeLoadCaregamento.load)
+            kotlinx.coroutines.delay(1000)
+           val daods= repositorio.fluxoPodutoPorID(it).map {
+                if(it==null) EstadosDeLoadCaregamento.Empty
+                else EstadosDeLoadCaregamento.Caregado(it)
+            }
+            emitAll(daods)
         }
+
 
     }
     val pesquisaDeProduto = pesquisa.flatMapLatest {
