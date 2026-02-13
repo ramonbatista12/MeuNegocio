@@ -22,19 +22,13 @@ object  ModuloRom{
     @Provides
     @Singleton
      fun providerRoom(@ApplicationContext context: Context): RoomBd{
-        val Migracao_1_2= object : Migration(1,2){
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("""
-               alter table requisicao_produto_servico add column quantidade integer not null default 1
-           """.trimIndent())
-            }
-        }
+
          return Room.databaseBuilder(context =context ,
                                      klass = RoomBd::class.java,
                                      name = "nome").addCallback(object : RoomDatabase.Callback() {
              override fun onCreate(db: SupportSQLiteDatabase) {
                  super.onCreate(db)
-                 db.execSQL("INSERT or ignore INTO estados (id,descricao) VALUES (${EstadoRequisicao.Cancelado.id},${EstadoRequisicao.Cancelado.descricao}),(${EstadoRequisicao.Confirmado.id},${EstadoRequisicao.Confirmado.descricao}),(${EstadoRequisicao.Pendente.id},${EstadoRequisicao.Pendente.descricao}),(${EstadoRequisicao.Entregue.id},${EstadoRequisicao.Entregue.descricao})")
+                 db.execSQL("INSERT or ignore INTO estados (id,descricao) VALUES (${EstadoRequisicao.Cancelado.id},'${EstadoRequisicao.Cancelado.descricao}'),(${EstadoRequisicao.Confirmado.id},'${EstadoRequisicao.Confirmado.descricao}'),(${EstadoRequisicao.Pendente.id},'${EstadoRequisicao.Pendente.descricao}'),(${EstadoRequisicao.Entregue.id},'${EstadoRequisicao.Entregue.descricao}')")
                  db.execSQL("""
                       create trigger if not exists inserindo_requisicao after insert on requisicao
                       for each row
@@ -51,7 +45,7 @@ object  ModuloRom{
                        end ;
                  """.trimIndent())
              }
-                                     }).addMigrations(Migracao_1_2).build()
+                                     }).build()
      }
     @Provides
     @Singleton

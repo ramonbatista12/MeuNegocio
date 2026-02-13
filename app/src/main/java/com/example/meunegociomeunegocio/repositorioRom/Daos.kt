@@ -19,6 +19,12 @@ interface Daos{
     @Transaction
     @Query("SELECT * FROM clientes WHERE nome  like '%'||:nome||'%' order by nome asc ")
     fun pesquisaCliente(nome:String):Flow<List<JuncaoClineteTelefoneEndereco>>
+    @Query("select * from endereco where id_cli=:id ")
+    fun enderecoPorId(id:Int):Flow<EntidadeEndereco?>
+    @Query("select * from telefone where id_cli=:id ")
+    fun telefonePorId(id:Int):Flow<EntidadeTelefone?>
+    @Query("SELECT * FROM clientes WHERE id = :id")
+    fun clientePorId(id:Int):Flow<EntidadeClientes?>
     @Update
     suspend fun atualizarCliente(cliente: EntidadeClientes)
     @Insert

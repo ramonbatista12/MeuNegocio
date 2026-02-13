@@ -1,5 +1,7 @@
 package com.example.meunegociomeunegocio.apresentacaoDeClientes
 
+import android.annotation.SuppressLint
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +25,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDeClientes
@@ -43,14 +47,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.meunegociomeunegocio.R
+import com.example.meunegociomeunegocio.apresentacaoRequisicoes.DialogoCriarPdf
 import com.example.meunegociomeunegocio.loads.DialogoLoad
 import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos
 import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.DadosDeClientes
 import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
+import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
 import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
+import com.example.meunegociomeunegocio.viewModel.IDialogoCriacaoPdf
 import com.example.meunegociomeunegocio.viewModel.TelasInternasDadosDeClientes
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
@@ -62,7 +70,7 @@ fun DadosDeClientes(vm: ViewModelCliente, windowSizeClass: WindowSizeClass, modi
         is EstadosDeLoadCaregamento.load->{
             if(!windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))
             DialogoLoad("Dados do cliente", EstadosDeLoadCaregamento.load)
-            else Box(modifier = Modifier.fillMaxSize()) { LoadBox3pontinhos(Modifier.align(Alignment.Center), String = TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load) }
+            else Box(modifier = Modifier.fillMaxSize()) { LoadBox3pontinhos(Modifier.align(Alignment.Center), titulo = TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load) }
         }
         is EstadosDeLoadCaregamento.Caregado<*> ->{
             DadosDeClientesImpl(vm, windowSizeClass = windowSizeClass, dadosDeClientes = (load.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj, acaoEdicao = acaoEdicao)
@@ -82,16 +90,26 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
     val coroutineScope = rememberCoroutineScope()
     val slecao=vm.daosClioente.collectAsState()
     Box(){
+
         IconButton(onClick = {coroutineScope.launch {vm.mudarTelaVisualizada(
         TelasInternasDeClientes.ListaDeClientes)  }},modifier.padding(5.dp).align(Alignment.TopStart)) {
         Icon(painterResource( R.drawable.baseline_arrow_back_24 ), contentDescription = null)
 
     }
-
-    IconButton(onClick = {coroutineScope.launch {acaoEdicao(dadosDeClientes.cliente.id) }},modifier.padding(5.dp).align(Alignment.TopEnd)) {
+    Row(Modifier.align(Alignment.TopEnd)) {
+        IconButton(onClick = {coroutineScope.launch {
+            Log.d("idcliente","id1 e aqui ${dadosDeClientes.cliente.id}")
+            acaoEdicao(dadosDeClientes.cliente.id) }},modifier.padding(5.dp)) {
             Icon(painterResource(R.drawable.create_24), contentDescription = "Editar cliente")
 
         }
+        IconButton(onClick = {},modifier.padding(5.dp)) {
+            Icon(painterResource(R.drawable.baseline_delete_24), contentDescription = "Editar cliente")
+
+        }
+
+    }
+
         Column (modifier=Modifier.padding(all = 5.dp).padding(top = 50.dp)){
 
             Iniciais(dadosDeClientes.cliente.nome,
@@ -99,11 +117,21 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
                 size = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) 200.dp else 100.dp,
                 sp = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) 60 else 30)
             Nome(dadosDeClientes.cliente.nome, Modifier.align(Alignment.CenterHorizontally).padding(start = 5.dp, end = 5.dp, bottom = 3.dp))
-            cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
-            BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }})
+
+            BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }},windowSizeClass)
             when(slecao.value){
                 is TelasInternasDadosDeClientes.Telefone->ListaDeTelefones(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.telefones)
                 is TelasInternasDadosDeClientes.Endereco->ListaDeEnderecos(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.enderecos)
+                is TelasInternasDadosDeClientes.Documentos -> {
+                    Card(modifier = Modifier.fillMaxSize().padding(5.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+                        Box(modifier = Modifier.fillMaxWidth()){
+                            HorizontalDivider(Modifier.align(Alignment.TopCenter))
+                            Column(Modifier.align(Alignment.CenterStart).padding(start = 5.dp,top=10.dp)) {
+                            cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -113,6 +141,7 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
  fun DadosDeClientesExpandido(vm: ViewModelCliente,
                                 modifier: Modifier= Modifier,
                                 windowSizeClass: WindowSizeClass,
+                                acaoEdicao: (Int) -> Unit
                                 ){
     val coroutineScope = rememberCoroutineScope()
     val sleDeClientes=vm.fluxoDeDadosDeClientesPainelExpandido.collectAsState(emptyFlow<DadosDeClientes>())
@@ -121,23 +150,41 @@ private fun DadosDeClientesImpl(vm: ViewModelCliente,
         is EstadosDeLoadCaregamento.Caregado<*> ->{
             val dadosDeClientes=(sleDeClientes.value as EstadosDeLoadCaregamento.Caregado<DadosDeClientes>).obj
             Column (modifier=Modifier.padding(all = 5.dp)){
-
+               Row(Modifier.align(Alignment.End)) {
+                   IconButton(onClick = {acaoEdicao(dadosDeClientes.cliente.id)}) {
+                       Icon(painterResource(R.drawable.create_24),"Editar cliente")
+                   }
+                   IconButton(onClick = {}) {
+                       Icon(painterResource(R.drawable.baseline_delete_24),"Editar cliente")
+                   }
+               }
                 Iniciais(dadosDeClientes.cliente.nome,
                     Modifier.align(Alignment.CenterHorizontally).padding(vertical = 20.dp),
                     size = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) 150.dp else 100.dp,
                     sp = if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) 60 else 30)
                 Nome(dadosDeClientes.cliente.nome, Modifier.align(Alignment.CenterHorizontally).padding(start = 5.dp, end = 5.dp, bottom = 3.dp))
-                cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
-                BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }})
+
+                BaraSelecao(modifier = Modifier.align(Alignment.CenterHorizontally), acao = {coroutineScope.launch { vm.mudarDadoDoCliente(it) }},windowSizeClass)
                 when(selecaoEndTel.value){
                     is TelasInternasDadosDeClientes.Telefone->ListaDeTelefones(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.telefones)
                     is TelasInternasDadosDeClientes.Endereco->ListaDeEnderecos(Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),dadosDeClientes.enderecos)
+                    is TelasInternasDadosDeClientes.Documentos->{
+                        Card(modifier = Modifier.fillMaxSize().padding(5.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
+                            Box(modifier = Modifier.fillMaxWidth()){
+                                HorizontalDivider(Modifier.align(Alignment.TopCenter))
+                                Column(Modifier.align(Alignment.CenterStart).padding(start = 5.dp,top=10.dp)) {
+                                    cpfCnpj(dadosDeClientes.cliente.cpf,dadosDeClientes.cliente.cnpj, Modifier.padding(start = 5.dp, end = 5.dp, bottom = 10.dp))
+                                }
+                            }
+                        }
+
+                    }
                 }
             }
         }
         is EstadosDeLoadCaregamento.load->{
             Box(Modifier.fillMaxSize()){
-                LoadBox3pontinhos(modifier=Modifier.align(Alignment.Center),String=TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load)
+                LoadBox3pontinhos(modifier=Modifier.align(Alignment.Center), titulo = TitulosDeLoad.Clientes.titulo, estado = EstadosDeLoadCaregamento.load)
             }
         }
         is EstadosDeLoadCaregamento.Empty->{}
@@ -184,10 +231,10 @@ private fun Nome(nome: String,modifier: Modifier= Modifier){
 }
 
 @Composable
-private fun BaraSelecao(modifier: Modifier= Modifier,acao: (TelasInternasDadosDeClientes)->Unit){
-    Row(modifier=modifier, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+private fun BaraSelecao(modifier: Modifier= Modifier,acao: (TelasInternasDadosDeClientes)->Unit,windowSizeClass: WindowSizeClass){
+    Row(modifier=modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         BaraDeSelecao.listaDeSelecao.forEach {
-            ItemDeSelecao(item = it, acao = {acao(it.selecao)})
+            ItemDeSelecao(item = it, acao = {acao(it.selecao)}, windowSizeClass = windowSizeClass)
         }
     }
 }
@@ -196,7 +243,10 @@ private fun BaraSelecao(modifier: Modifier= Modifier,acao: (TelasInternasDadosDe
  * */
 @Composable
 private fun cpfCnpj(cpf:String?,cnpj:String?,modifier: Modifier= Modifier){
-    if(cpf==null&&cnpj==null) return
+    if(cpf==null&&cnpj==null) {
+        Text(text = "Dados nao cadastrados ",modifier=modifier, fontSize = 20.sp)
+     return
+    }
     if(cnpj==null) Text(text = "cpf :"+cpf,modifier=modifier, fontSize = 20.sp)
     else  if(cpf==null) Text(text = "cnpj :"+ cnpj, modifier = modifier, fontSize = 20.sp)
     else if(cpf!=null&&cnpj!=null) Column(modifier = modifier) {
@@ -205,9 +255,13 @@ private fun cpfCnpj(cpf:String?,cnpj:String?,modifier: Modifier= Modifier){
     }
 }
 @Composable
-private fun ItemDeSelecao(acao:()->Unit, modifier: Modifier= Modifier,item: BaraDeSelecao){
+private fun ItemDeSelecao(acao:()->Unit, modifier: Modifier= Modifier,item: BaraDeSelecao,windowSizeClass: WindowSizeClass){
     OutlinedButton(onClick = { acao()}) {
-        Text(item.nome,modifier= Modifier.padding(end = 5.dp))
+
+        Text(if(windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)||windowSizeClass.isWidthAtLeastBreakpoint(
+                WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND))item.nome
+             else item.nomeCompat ,
+            modifier= Modifier.padding(end = 5.dp))
         Icon( painterResource(id = item.icone), contentDescription = null)
 
 
@@ -216,11 +270,12 @@ private fun ItemDeSelecao(acao:()->Unit, modifier: Modifier= Modifier,item: Bara
 /**
  * representa as opcoes de selecao  dos dados dos clientes como lista de endereco e lista de telefone
  * */
-sealed class BaraDeSelecao(val icone:Int, val nome: String, val selecao: TelasInternasDadosDeClientes){
-object SelecaoTelefone: BaraDeSelecao(R.drawable.telefone,"Telefone" ,TelasInternasDadosDeClientes.Telefone)
-    object SelecaoEndereco: BaraDeSelecao(R.drawable.endereco,"Endereco" ,TelasInternasDadosDeClientes.Endereco)
+sealed class BaraDeSelecao(val icone:Int, val nome: String, val nomeCompat: String, val selecao: TelasInternasDadosDeClientes){
+object SelecaoTelefone: BaraDeSelecao(R.drawable.telefone,"Telefone","Tel" ,TelasInternasDadosDeClientes.Telefone)
+    object SelecaoEndereco: BaraDeSelecao(R.drawable.endereco,"Endereco" ,"End",TelasInternasDadosDeClientes.Endereco)
+    object SelecaoDocumentos: BaraDeSelecao(R.drawable.pessoa_identificaco,"Documento","Doc" ,TelasInternasDadosDeClientes.Documentos)
     companion object{
-        val listaDeSelecao= listOf(SelecaoTelefone,SelecaoEndereco)
+        val listaDeSelecao= listOf(SelecaoTelefone,SelecaoEndereco,SelecaoDocumentos)
     }
 }
 /**
@@ -251,9 +306,7 @@ private fun Endereco(endr: Endereco ){
                  Icon(painterResource(R.drawable.endereco),null)
              }
 
-             IconButton(onClick = {},Modifier.size(30.dp)) {
-                 Icon(painterResource(R.drawable.baseline_delete_24),null)
-             }
+
          }
          HorizontalDivider()
      }
@@ -290,14 +343,47 @@ private fun Telefone(telefone: Telefone
                     Icon(painterResource(R.drawable.telefone),null)
                 }
 
-                IconButton(onClick = {},Modifier.size(30.dp)) {
-                    Icon(painterResource(R.drawable.baseline_delete_24),null)
-                }
+
             }
             HorizontalDivider()
         }
     }
 }
-@Preview
+
 @Composable
 fun previaDadosClientes(){}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Preview(showBackground = true)
+@Composable
+fun previaDoLoadDialog(){
+    Scaffold(Modifier.fillMaxSize()) {
+
+        val objetoDeDialogo = object : IDialogoCriacaoPdf{
+            override val caixaDeDialogoCriarPdf: MutableStateFlow<Boolean>
+                get() = MutableStateFlow(true)
+            override val envioDerequisicao: MutableStateFlow<Uri?>
+                get() = MutableStateFlow<Uri?>(null)
+            override val estadosDeCriacaoDePdf: MutableStateFlow<EstadoLoadAcoes>
+                get() = MutableStateFlow(EstadoLoadAcoes.Criando)
+
+            override fun abrirDialogo() {
+
+            }
+
+            override fun fecharDialogo() {
+            }
+
+            override fun criarPdf(uri: Uri?) {
+
+            }
+
+            override fun limparEnvio() {
+
+            }
+        }
+
+        DialogoCriarPdf(objetoDeDialogo)
+
+    }
+}

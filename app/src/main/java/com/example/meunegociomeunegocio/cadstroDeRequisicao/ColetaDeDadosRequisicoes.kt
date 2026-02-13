@@ -1,6 +1,7 @@
 package com.example.meunegociomeunegocio.cadstroDeRequisicao
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -39,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,9 +51,12 @@ import com.example.meunegociomeunegocio.R
 import com.example.meunegociomeunegocio.apresentacaoDeClientes.ListaDeClientes
 import com.example.meunegociomeunegocio.apresentacaoDeProdutos.ListaDeProdutos
 import com.example.meunegociomeunegocio.apresentacaoRequisicoes.DialogoCriarPdf
+import com.example.meunegociomeunegocio.utilitario.EstadoLoadAcoes
+import com.example.meunegociomeunegocio.viewModel.IDialogoCriacaoPdf
 import com.example.meunegociomeunegocio.viewModel.ProdutoSelecionado
 import com.example.meunegociomeunegocio.viewModel.TelasInternas
 import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -332,3 +339,36 @@ private fun NomeCliente(vm: ViewModelCriarRequisicoes,modifier: Modifier= Modifi
     }
 }
 
+@Preview
+@Composable
+fun previasDoLoad(){
+    Scaffold(Modifier.fillMaxSize()) {it->
+        var pading =it;
+        var interfaceDeDialogo = object : IDialogoCriacaoPdf{
+            override fun limparEnvio() {
+
+            }
+
+            override fun criarPdf(uri: Uri?) {
+
+            }
+
+            override fun fecharDialogo() {
+
+            }
+
+            override fun abrirDialogo() {
+
+            }
+
+            override val estadosDeCriacaoDePdf: MutableStateFlow<EstadoLoadAcoes>
+                get() = MutableStateFlow<EstadoLoadAcoes>(EstadoLoadAcoes.Criando)
+            override val envioDerequisicao: MutableStateFlow<Uri?>
+                get() = MutableStateFlow<Uri?>(null)
+            override val caixaDeDialogoCriarPdf: MutableStateFlow<Boolean>
+                get() = MutableStateFlow(true)
+        }
+        DialogoCriarPdf(interfaceDeDialogo)
+    }
+
+}

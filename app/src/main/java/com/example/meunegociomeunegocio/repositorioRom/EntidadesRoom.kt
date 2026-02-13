@@ -19,7 +19,10 @@ data class EntidadeClientes(@PrimaryKey(autoGenerate = true)
                             @ColumnInfo(name = "cpf")
                             val cpf:String? ,
                             @ColumnInfo(name = "cnpj")
-                            val cnpj:String?,)
+                            val cnpj:String?,
+                            @ColumnInfo(name = "Ativo", defaultValue = "1")
+                            val ativo:Boolean
+                        )
 
 @Entity(tableName = "telefone",
         foreignKeys = [ForeignKey(entity = EntidadeClientes::class,childColumns =["id_cli"], parentColumns = ["id"],onDelete = ForeignKey.CASCADE  )])
@@ -89,8 +92,8 @@ data class EntidadeEstado(@ColumnInfo("id")
                           val descricao:String,)
 
 @Entity(tableName = "requisicao",
-        foreignKeys = [ForeignKey(entity =EntidadeEstado::class,parentColumns = ["id"],childColumns = ["id_est"]),
-                      ForeignKey(entity = EntidadeClientes::class,parentColumns = ["id"],childColumns = ["id_cli"] ) ])
+        foreignKeys = [ForeignKey(entity =EntidadeEstado::class,parentColumns = ["id"],childColumns = ["id_est"],onDelete = CASCADE),
+                      ForeignKey(entity = EntidadeClientes::class,parentColumns = ["id"],childColumns = ["id_cli"],onDelete = CASCADE ), ])
 
 data class EntidadeRequisicao(@ColumnInfo("id")
                               @PrimaryKey(autoGenerate = true)
@@ -127,8 +130,8 @@ data class ProdutoSolicitado(@ColumnInfo(name = "id")val id:Int,
                              @ColumnInfo(name = "produto_servico") val servico:Boolean)
 
 @Entity("requisicao_produto_servico",
-         foreignKeys = [ForeignKey(entity = EntidadeRequisicao::class,parentColumns = ["id"],childColumns = ["id_req"]),
-                        ForeignKey(entity = EntidadeProdutoServico::class,parentColumns = ["id"],childColumns = ["id_prd"] )],
+         foreignKeys = [ForeignKey(entity = EntidadeRequisicao::class,parentColumns = ["id"],childColumns = ["id_req"],onDelete = CASCADE),
+                        ForeignKey(entity = EntidadeProdutoServico::class,parentColumns = ["id"],childColumns = ["id_prd"],onDelete = CASCADE )],
 
                                    )
 data class EntidadeRequesicaoProduto(@ColumnInfo(name = "id")

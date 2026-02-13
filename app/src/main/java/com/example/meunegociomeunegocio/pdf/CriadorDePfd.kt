@@ -69,7 +69,7 @@ class CriadorDePfd(private val contexto: Context) {
             pagina[0]= pdf.startPage(paginaInf)
             offset= OffsetDesenho(x = 50,y= 50)
         }
-
+        if(dadosDaRequisicao.requisicao.obs!=null&&!dadosDaRequisicao.requisicao.obs.isBlank())
         desenheTexto(pagina[0],paint,"Obs : "+dadosDaRequisicao.requisicao.obs,OffsetDesenho(offset.x,offset.y+30),pagina[0].info.pageWidth-100)
         pdf.finishPage(pagina[0])
         return pdf

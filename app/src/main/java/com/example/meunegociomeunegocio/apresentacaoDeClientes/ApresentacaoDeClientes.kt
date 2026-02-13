@@ -50,7 +50,7 @@ private fun ListaDeClientesExpandida(modifier: Modifier= Modifier,vm: ViewModelC
     Row(modifier = modifier.padding(horizontal = 5.dp)) {
         ListaDeClientes(Modifier.fillMaxWidth(0.4f), vm = vm)
         VerticalDivider(Modifier.padding(horizontal = 15.dp))
-        DadosDeClientesExpandido(vm, windowSizeClass = windowSizeClass, modifier = Modifier.fillMaxWidth(0.4f))
+        DadosDeClientesExpandido(vm, windowSizeClass = windowSizeClass, modifier = Modifier.fillMaxWidth(0.4f),acaoEdicao = acaoDeEdicao)
 
     }
 }

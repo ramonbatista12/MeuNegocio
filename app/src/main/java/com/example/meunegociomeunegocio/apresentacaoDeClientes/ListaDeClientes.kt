@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -64,9 +65,12 @@ fun ListaDeClientes(modifier: Modifier= Modifier,vm:ViewModelCliente){
                 }
                 is EstadosDeLoadCaregamento.Empty -> {
                     item {
-                    Text("Nenhum cliente encontrado")
+                        Row(modifier=Modifier.fillMaxSize().padding(top = 100.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center)  {
+                            Text("Lista vasia")
+                        }
 
-                }}
+
+                    }}
                 is EstadosDeLoadCaregamento.Erro -> {}
                 is EstadosDeLoadCaregamento.Caregado<*> -> {
                     val lista=estadoDeLoad.value as EstadosDeLoadCaregamento.Caregado<List<Cliente>>
@@ -166,7 +170,9 @@ private fun BaraDePesquisaClientes(modifier: Modifier= Modifier, vm: ViewModelCl
                                                           placeholder = {Text("Pesquisar")},
                                                           leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
                                                           trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
-                                                              Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+                                                              Modifier.clickable(onClick = {estadoDaBara.value=false
+                                                                                            texto.value=""
+                                                              }))}) },
               expanded = estadoDaBara.value,
               onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
               colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background)){

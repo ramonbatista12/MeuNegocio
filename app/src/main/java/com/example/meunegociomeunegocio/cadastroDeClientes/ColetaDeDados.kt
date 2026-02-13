@@ -21,12 +21,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.room.EntityDeleteOrUpdateAdapter
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoCep
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoCnpj
 import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoCpf
@@ -34,8 +38,10 @@ import com.example.meunegociomeunegocio.formatadoresDeTesto.FormatoTelefone
 import com.example.meunegociomeunegocio.repositorioRom.Cliente
 import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
 import com.example.meunegociomeunegocio.viewModel.EstagiosDeCadastroClientes
 import com.example.meunegociomeunegocio.viewModel.ViewModelCadastroDeCliente
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
 
@@ -64,11 +70,13 @@ fun CadastroCompat(vm: ViewModelCadastroDeCliente,acaoDeVoltar:()->Unit){
 }
 
 @Composable
-private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={}){
+private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={},longDelay:Long=100){
     val cliente =vm.cliente.collectAsStateWithLifecycle()
     val nome= rememberTextFieldState()
     val cpf=rememberTextFieldState()
     val cnpj=rememberTextFieldState()
+    val  focoRequestiClinete = remember { FocusRequester() }
+    val loadCliente =vm.LoadCliente.collectAsStateWithLifecycle()
     LaunchedEffect(cliente.value) {
         if(cliente.value!=null){
             val cliente = cliente.value
@@ -78,10 +86,19 @@ private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Uni
         }
 
     }
+    LaunchedEffect(loadCliente.value) {
+        when(loadCliente.value){
+            is EstadosDeLoadCaregamento.Caregado<*>-> {
+                delay(longDelay)
+                focoRequestiClinete.requestFocus()
+            }
+            else -> {}
+        }
+    }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Cadastro de cliente", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
         Spacer(Modifier.padding(3.dp))
-        OutlinedTextField(state = nome, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f), label = {Text("Nome")})
+        OutlinedTextField(state = nome, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f).focusRequester(focoRequestiClinete), label = {Text("Nome")})
         Spacer(Modifier.padding(3.dp))
         OutlinedTextField(state = cpf, modifier = Modifier.padding( horizontal = 5.dp).fillMaxWidth(0.98f), label = {Text("Cpf")},
                           inputTransformation = FormatoCpf() )
@@ -106,16 +123,26 @@ private fun  CadastraCliente(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Uni
 }
 
 @Composable
-private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={}){
+private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Unit={},longDelay:Long=100){
     val telefone= rememberTextFieldState()
     val telefoneSalvo =vm.telefone.collectAsStateWithLifecycle()
     val coroutineScope= rememberCoroutineScope()
+    val focusRequesterTelefone =remember { FocusRequester() }
+    val loadCliente =vm.LoadCliente.collectAsStateWithLifecycle()
     LaunchedEffect(telefoneSalvo.value) {
         if(telefoneSalvo.value!=null) {
             telefone.setTextAndPlaceCursorAtEnd(telefoneSalvo.value!!.ddd+" "+telefoneSalvo.value!!.numero)
         }
     }
-    Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    LaunchedEffect(loadCliente.value) {
+        when(loadCliente.value){
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                delay(longDelay)
+                focusRequesterTelefone.requestFocus()}
+            else -> {}
+        }
+    }
+    Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp).focusRequester(focusRequesterTelefone), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Cadastro de telefone", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
 
         OutlinedTextField(state = telefone, label = {Text("Numero do telefone")}, modifier = Modifier.fillMaxWidth(0.98f),
@@ -148,7 +175,7 @@ private fun  CadastraTelefone(vm: ViewModelCadastroDeCliente,acaoDevoutar:()->Un
 }
 
 @Composable
-private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
+private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente,longDelay:Long=100){
     val endereco =vm.endereco.collectAsStateWithLifecycle()
     val rua= rememberTextFieldState()
     val numero= rememberTextFieldState()
@@ -157,6 +184,8 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
     val cep= rememberTextFieldState()
     val bairo= rememberTextFieldState()
     val complemento= rememberTextFieldState()
+    val focusRequesterRua = remember { FocusRequester() }
+    val loadCliente =vm.LoadCliente.collectAsStateWithLifecycle()
     LaunchedEffect(endereco.value) {
         if(endereco.value!=null){
             val endereco = endereco.value
@@ -169,9 +198,16 @@ private fun  CadastraEndereco(vm: ViewModelCadastroDeCliente){
             complemento.setTextAndPlaceCursorAtEnd(endereco.complemento)
         }
     }
+    LaunchedEffect(loadCliente.value) {
+        when(loadCliente.value){
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                delay(longDelay)
+                focusRequesterRua.requestFocus()}
+            else -> {}}
+    }
     Column(modifier =Modifier.fillMaxWidth().padding(bottom = 70.dp,top = 10.dp, start = 5.dp, end = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Cadastro de Endereco", fontSize = 25.sp, modifier = Modifier.padding(bottom = 10.dp,top=20.dp))
-        OutlinedTextField(state = rua, label = {Text("Rua")}, modifier = Modifier.fillMaxWidth(0.98f))
+        OutlinedTextField(state = rua, label = {Text("Rua")}, modifier = Modifier.fillMaxWidth(0.98f).focusRequester(focusRequesterRua))
         Spacer(Modifier.padding(3.dp))
         OutlinedTextField(state = numero, label = {Text("Numero")}, modifier = Modifier.fillMaxWidth(0.98f))
         Spacer(Modifier.padding(3.dp))

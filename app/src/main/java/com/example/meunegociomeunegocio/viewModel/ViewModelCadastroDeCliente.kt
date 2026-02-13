@@ -4,7 +4,9 @@ package com.example.meunegociomeunegocio.viewModel
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeClientes
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeProdutos
@@ -13,22 +15,30 @@ import com.example.meunegociomeunegocio.repositorioRom.Endereco
 import com.example.meunegociomeunegocio.repositorioRom.Repositorio
 import com.example.meunegociomeunegocio.repositorioRom.Telefone
 import com.example.meunegociomeunegocio.utilitario.AuxiliarValidacaoDadosDeClientes
+import com.example.meunegociomeunegocio.utilitario.EstadosDeLoadCaregamento
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-@HiltViewModel
-class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Repositorio) : ViewModel() {
+@HiltViewModel(assistedFactory = ViewModelCadastroDeCliente.Fabrica::class)
+class ViewModelCadastroDeCliente @AssistedInject constructor(private val repositorio: Repositorio,@Assisted val id1: Int?) : ViewModel() {
+    val liveData = MutableLiveData<String>()
      val Tag ="ViewModelCadastroDeCliente"
      val coroutineScope=viewModelScope
      val snackbarHostState = SnackbarHostState()
-     private val _id = MutableStateFlow<Long>(0)
+     private val _id = MutableStateFlow<Int>(0)
      private val estagios = GerenciadorDeEstagios()
      private val validador =AuxiliarValidacaoDadosDeClientes()
+     private val _loadCliente=MutableStateFlow<EstadosDeLoadCaregamento>(EstadosDeLoadCaregamento.Empty)
      val clienteAdicionado= MutableStateFlow<Boolean>(false)
      val enderecoAdicionado= MutableStateFlow<Boolean>(false)
      val telefoneAdicionado= MutableStateFlow<Boolean>(false)
@@ -37,9 +47,30 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
      val telefone= MutableStateFlow<Telefone?>(null)
      val id =_id
      val estagio=estagios.fluxoDeEstagios
+     val LoadCliente=_loadCliente
+     init {
+         if(id1!=null)
+         coroutineScope.launch(Dispatchers.IO) {
+             _loadCliente.emit(EstadosDeLoadCaregamento.load)
+             Log.d(Tag,"id1 $id1")
+             delay(1000)
+             _id.value=id1!!
+             val clineteAusiliar = repositorio.clientesPorId(id.value.toInt()) .first()
+             val enderecoAuxiliar =repositorio.fluxoDeEnderecoPorId(id.value.toInt()).first()
+             val telefoneAuxiliar=repositorio .fluxoDeTelefonePorId(id.value.toInt()).first()
+             cliente.emit(clineteAusiliar)
+             endereco.emit(enderecoAuxiliar)
+             telefone.emit(telefoneAuxiliar)
+             clienteAdicionado.emit(true)
+             enderecoAdicionado.emit(true)
+             telefoneAdicionado.emit(true)
+             _loadCliente.emit(EstadosDeLoadCaregamento.Caregado(Unit))
+
+         }
+     }
      suspend fun adicionarCliente(cliente: Cliente?) {
                 val idAux= repositorio.inserirCliente( validador.validarCliente(cliente))
-                _id.emit(idAux)}
+                _id.emit(idAux.toInt())}
 
      suspend fun adicionarEndereco(endereco: Endereco?){
         repositorio.inserirEndereco(validador.validarEndereco(endereco,_id.value.toInt()))}
@@ -111,6 +142,11 @@ class ViewModelCadastroDeCliente@Inject constructor(private val repositorio: Rep
         coroutineScope.launch {
             endereco.emit(e)
         }
+    }
+
+    @AssistedFactory
+    interface Fabrica {
+        fun criar(id: Int?): ViewModelCadastroDeCliente
     }
 }
 

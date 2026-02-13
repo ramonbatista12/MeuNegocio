@@ -1,8 +1,8 @@
 package com.example.meunegociomeunegocio.repositorioRom
 
 
-fun EntidadeClientes.toCliente(): Cliente= Cliente(this.id,this.nome,this.cpf,this.cnpj)
-fun Cliente.toEntidadeCliente(): EntidadeClientes= EntidadeClientes(this.id,this.nome,this.cpf,this.cnpj)
+fun EntidadeClientes.toCliente(): Cliente= Cliente(this.id,this.nome,this.cpf,this.cnpj,this.ativo)
+fun Cliente.toEntidadeCliente(): EntidadeClientes= EntidadeClientes(this.id,this.nome,this.cpf,this.cnpj,this.ativo)
 fun EntidadeTelefone.toTelefone(): Telefone= Telefone(this.id,this.idCli,this.ddd,this.numero)
 fun Telefone.toEntidadeTelefone(): EntidadeTelefone= EntidadeTelefone(this.id,this.idCli,this.ddd,this.numero)
 fun EntidadeEndereco.toEndereco(): Endereco= Endereco(id=this.id, idCli = this.idCli, rua = this.rua, numero = this.numero, bairro = this.bairro,

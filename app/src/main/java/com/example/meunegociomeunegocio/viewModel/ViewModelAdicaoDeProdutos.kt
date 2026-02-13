@@ -53,6 +53,7 @@ class ViewModelAdicaoDeProdutos @AssistedInject constructor(val repositorio: Rep
     private fun caregarProduto(){
         corotinesScope.launch(Dispatchers.IO) {
             _estadoLoadProduto.emit(EstadosDeLoadCaregamento.load)
+            delay(1000)
             val produto =repositorio.fluxoPodutoPorID(id!!).first()
             if(produto!=null){
                 withContext(Dispatchers.Main) {
@@ -77,7 +78,7 @@ class ViewModelAdicaoDeProdutos @AssistedInject constructor(val repositorio: Rep
                 }
 
             }
-            delay(1000)
+
             _estadoLoadProduto.emit(EstadosDeLoadCaregamento.Caregado(Unit))
 
         }

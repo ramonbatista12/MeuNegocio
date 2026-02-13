@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
                       EntidadeProdutoServico::class,
                       EntidadeRequisicao::class,
                       EntidadeTelefone::class,
-                      EntidadeRequesicaoProduto::class],version=2)
+                      EntidadeRequesicaoProduto::class],version=1)
 abstract class RoomBd :RoomDatabase(){
     abstract fun assesoAosDados(): Daos
 

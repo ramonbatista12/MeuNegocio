@@ -99,6 +99,7 @@ sealed class TelasInternasDeClientes(){
 sealed class TelasInternasDadosDeClientes(){
     object Telefone: TelasInternasDadosDeClientes()
     object Endereco: TelasInternasDadosDeClientes()
+    object Documentos: TelasInternasDadosDeClientes()
 
 }
 

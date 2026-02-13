@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -65,6 +66,7 @@ import com.example.meunegociomeunegocio.apresentacaoDeProdutos.formatarPreco
 import com.example.meunegociomeunegocio.loads.DialogoLoad
 import com.example.meunegociomeunegocio.loads.ItemDelLoadTabelas
 import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos
+import com.example.meunegociomeunegocio.loads.LoadBox3pontinhos2
 import com.example.meunegociomeunegocio.loads.TitulosDeLoad
 import com.example.meunegociomeunegocio.repositorioRom.DadosDaRequisicao
 import com.example.meunegociomeunegocio.repositorioRom.Estado
@@ -173,11 +175,12 @@ fun ListaDeRequisicoes(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoes
                          HorizontalDivider(Modifier.padding(vertical = 5.dp))
                          when (estados.value) {
                              is EstadoLoadAcoes.Criando -> {
-                                 CircularProgressIndicator(
-                                     Modifier
+                                 LoadBox3pontinhos2(modifier = Modifier
                                          .align(Alignment.CenterHorizontally)
                                          .padding(20.dp)
-                                         .size(60.dp)
+                                         ,
+                                   mensagem =   "Salvando Pdf",
+                                   estado = EstadosDeLoadCaregamento.load
                                  )
                              }
 
@@ -289,7 +292,7 @@ private fun ListaCompat(windowSizeClass: WindowSizeClass,vm: ViewModelRequisicoe
                 vm.mudarId(it)
                 vm.mostrarRequisicao(it) },acaoNavegarEdicao)}
         is TelasInternasDeRequisicoes.Requisicao -> {
-            ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
+            ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass,acaoNavegarEdicao)
         }
     }
 
@@ -303,7 +306,7 @@ private fun   ListaExpandida(windowSizeClass: WindowSizeClass,vm: ViewModelRequi
         Lista(modifier= Modifier.fillMaxWidth(0.4f),vm,windowSizeClass = windowSizeClass, acao = { vm.mudarId(it)
                                                                             vm.mostrarRequisicao(it) },acaoNavegarEdicao)
         VerticalDivider(Modifier.padding(horizontal = 15.dp))
-        ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass)
+        ExibicaoDaRequisicao(modifier=modifier,acaoDeVoultar = {vm.voutarALista()},vm=vm, windowSizeClass =windowSizeClass, acaoNavegarEdicao = acaoNavegarEdicao)
 
     }
 }
@@ -316,15 +319,28 @@ private fun Lista(modifier:Modifier=Modifier, vm: ViewModelRequisicoes, windowSi
         .fillMaxWidth()
         .padding(horizontal = 5.dp),windowSizeClass,acaoNavegarEdicao)
     LazyColumn(modifier = Modifier) {
-        stickyHeader {
-            CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+        when(estadosDeLoadCaregamento.value){
+            is EstadosDeLoadCaregamento.Caregado<*> -> {
+                stickyHeader {
+                CabesalhoRequisicao(windowSizeClass = windowSizeClass)
+            }}
+            else ->{}
         }
+
         when(estadosDeLoadCaregamento.value){
             is EstadosDeLoadCaregamento.load -> {
                 items(count = 5) {
                     ItemDelLoadTabelas()
             }}
-            is EstadosDeLoadCaregamento.Empty -> {}
+            is EstadosDeLoadCaregamento.Empty -> {
+                item {
+                    Row(modifier=Modifier.fillMaxSize().padding(top = 100.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center)  {
+                        Text("Lista vasia")
+                    }
+
+
+                }
+            }
             is EstadosDeLoadCaregamento.Caregado<*> -> {
                 val lista = estadosDeLoadCaregamento.value as EstadosDeLoadCaregamento.Caregado<List<DadosDaRequisicao>>
                 items(items = lista.obj) {
@@ -467,7 +483,7 @@ private fun MenuFiltro(modifier: Modifier= Modifier,expanded: MutableState<Boole
 }
 
 @Composable
-private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass){
+private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->Unit={},vm: ViewModelRequisicoes,windowSizeClass: WindowSizeClass,acaoNavegarEdicao: (Int) -> Unit){
         val requisicao=vm.fluxoDadosDeRequisicao.collectAsStateWithLifecycle(EstadosDeLoadCaregamento.load)
         val estadoListaHistorico =vm.estadoListaHistorico.collectAsStateWithLifecycle(ListaHistorico.Lista)
         val envioDasRequisicoes =vm.envioDerequisicao.collectAsStateWithLifecycle(null)
@@ -488,9 +504,15 @@ private fun ExibicaoDaRequisicao(modifier: Modifier=Modifier,acaoDeVoultar:()->U
                     Icon(painterResource(R.drawable.baseline_arrow_drop_down_24),contentDescription = null,modifier=Modifier.size(25.dp))
                 }
                     NumeroDeRequisicoes(requisicao.obj.requisicao.id,modifier= Modifier.align(Alignment.Center))
-                 IconButton(onClick = {vm.abrirDialogo()},modifier= Modifier.align(Alignment.CenterEnd)) {
-                     Icon(painter = painterResource(R.drawable.recibo_2_24), contentDescription = null,modifier=Modifier.size(20.dp))
-                 }
+                  Row(modifier= Modifier.align(Alignment.CenterEnd)) {
+                      IconButton(onClick = {acaoNavegarEdicao(requisicao.obj.requisicao.id)}) {
+                          Icon(painter = painterResource(R.drawable.create_24), contentDescription = null,modifier=Modifier.size(20.dp))
+                      }
+                      IconButton(onClick = {vm.abrirDialogo()}) {
+                          Icon(painter = painterResource(R.drawable.recibo_2_24), contentDescription = null,modifier=Modifier.size(20.dp))
+                      }
+                  }
+
 
 
                 }
@@ -788,7 +810,12 @@ private fun CabesalhoEstado(modifier: Modifier=Modifier){
         }
     }
 }
-@Composable
+
+
+
+
+ @Preview(showBackground = true)
+ @Composable
 private fun ItemHistorico(dados: Mudanca){
 
 

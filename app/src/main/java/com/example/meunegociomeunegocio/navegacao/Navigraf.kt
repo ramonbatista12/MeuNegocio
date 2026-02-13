@@ -18,6 +18,7 @@ import com.example.meunegociomeunegocio.apresentacaoRequisicoes.ApresentacaoDeRe
 import com.example.meunegociomeunegocio.cadastroDeClientes.CadastroDeClientes
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.ApresentacaoCriarRequisicao
 import com.example.meunegociomeunegocio.viewModel.ViewModelAdicaoDeProdutos
+import com.example.meunegociomeunegocio.viewModel.ViewModelCadastroDeCliente
 import com.example.meunegociomeunegocio.viewModel.ViewModelCriarRequisicoes
 
 @Composable
@@ -41,7 +42,9 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
                 avisoDeDestino(DestinosDeNavegacao.Clientes)
                 acaoMostrarBotaoDeAdicionar()
             }
-            ApresentacaoDeClientes(vm = hiltViewModel(),modifier,windowSize = windowSize,{navController.navigate(DestinosDeNavegacao.AdicaoDeCleintes(id))})
+            ApresentacaoDeClientes(vm = hiltViewModel(),modifier,windowSize = windowSize,{it->
+                Log.d("idcliente","na chamada do navigrafic o id cliente e ${it}")
+                navController.navigate(DestinosDeNavegacao.AdicaoDeCleintes(it))})
         }
         composable<DestinosDeNavegacao.Produtos> {
             LaunchedEffect(Unit) {
@@ -54,8 +57,8 @@ fun Navigraf(navController: NavHostController,windowSize: WindowSizeClass,modifi
             LaunchedEffect(Unit){
                 acaoOcultarBotaoDeAdicionar()
             }
-            var cliente =it.toRoute<DestinosDeNavegacao.Clientes>()
-            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel(), acaoDeVoutar = { navController.popBackStack() })
+            var cliente =it.toRoute<DestinosDeNavegacao.AdicaoDeCleintes>()
+            CadastroDeClientes(windowSizeClass = windowSize,vm=hiltViewModel<ViewModelCadastroDeCliente,ViewModelCadastroDeCliente.Fabrica>{it.criar(cliente.idCliente)}, acaoDeVoutar = { navController.popBackStack() })
         }
         composable<DestinosDeNavegacao.AdicaoDeProdutos>{
             LaunchedEffect(Unit) {

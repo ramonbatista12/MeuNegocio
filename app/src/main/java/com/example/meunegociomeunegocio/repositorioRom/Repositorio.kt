@@ -29,14 +29,18 @@ class Repositorio @Inject constructor(private val roomBd: RoomBd) {
     suspend fun inserirCliente(cliente: Cliente)= withContext(Dispatchers.IO) {   dao.inserirClientes(cliente.toEntidadeCliente())}
     suspend fun apagarCliente(clientes: Cliente)=withContext(Dispatchers.IO){ dao.deletarCliente(clientes.toEntidadeCliente()) }
     suspend fun atuAlizarCliente(clientes: Cliente)=withContext(Dispatchers.IO) { dao.atualizarCliente( clientes.toEntidadeCliente()) }
+    fun fluxoDeClientesPorId(id:Int)=dao.ClientesPorId(id).map {if(it==null)null else it.toDadosDeClientes()}
+    fun clientesPorId(id:Int)=dao.clientePorId(id).map {if(it==null)null else it.toCliente()}
     //acoes em endereco
     suspend fun inserirEndereco(endereco: Endereco)=withContext(Dispatchers.IO) { dao.insertEndereco(endereco.toEntidadeEndereco()) }
     suspend fun apagarEndereco(endereco: Endereco)=withContext(Dispatchers.IO) { dao.apagarEndereco(endereco.toEntidadeEndereco()) }
     suspend fun atualizarEndereco(endereco: Endereco)=withContext(Dispatchers.IO) { dao.updateEndereco(endereco.toEntidadeEndereco()) }
+    suspend fun fluxoDeEnderecoPorId(id:Int)=dao.enderecoPorId(id).map {if(it==null)null else it.toEndereco()}
     //acoes em Telefone
     suspend fun atulizarTelefone(telefone: Telefone)=withContext(Dispatchers.IO) { dao.updateTelefone(telefone.toEntidadeTelefone())}
     suspend fun inserirTelefone(telefone: Telefone)=withContext(Dispatchers.IO) { dao.insertTeleforn(telefone.toEntidadeTelefone())}
     suspend fun apagarTelefone(telefone: Telefone)=withContext(Dispatchers.IO) { dao.apagarTelefone(telefone.toEntidadeTelefone()) }
+    fun fluxoDeTelefonePorId(id:Int)=dao.telefonePorId(id).map {if(it==null)null else it.toTelefone()}
     //acoes em produtos
     suspend fun inserirProdutoServico(produto: ProdutoServico)=withContext(Dispatchers.IO) { dao.inserirProdutoServico(produto.toEntidadeProdutoServico()) }
     suspend fun apagarProdutoServico(produto: ProdutoServico)=withContext(Dispatchers.IO) { dao.deletarProdutoServico(produto.toEntidadeProdutoServico())  }

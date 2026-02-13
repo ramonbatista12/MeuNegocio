@@ -6,6 +6,7 @@ import androidx.compose.animation.core.EaseInElastic
 import androidx.compose.animation.core.InfiniteRepeatableSpec
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.StartOffsetType
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -56,18 +57,30 @@ fun LoadClientes(){
                                                                                         RepeatMode.Restart ))
 
     val linearGradienteDeCores= Brush.linearGradient(colors =cores, start = Offset(40f,50f), end = Offset(animacao.value+40,animacao.value+50))
-    Row(Modifier.fillMaxWidth().padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 5.dp)) {
-        Box(Modifier.size(40.dp).background(brush =linearGradienteDeCores, shape = CircleShape).padding(end = 20.dp))
+    Row(Modifier
+        .fillMaxWidth()
+        .padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 5.dp)) {
+        Box(Modifier
+            .size(40.dp)
+            .background(brush = linearGradienteDeCores, shape = CircleShape)
+            .padding(end = 20.dp))
         Spacer(Modifier.padding(5.dp))
         Column(verticalArrangement = Arrangement.Center) {
             Spacer(Modifier.padding(2.dp))
-            Box(Modifier.size(width = 250.dp,10.dp).background(brush = linearGradienteDeCores).padding(bottom = 20.dp).clip(
-                RoundedCornerShape(10.dp)
-            ))
+            Box(Modifier
+                .size(width = 250.dp, 10.dp)
+                .background(brush = linearGradienteDeCores)
+                .padding(bottom = 20.dp)
+                .clip(
+                    RoundedCornerShape(10.dp)
+                ))
             Spacer(Modifier.padding(5.dp))
-            Box(Modifier.size(width = 90.dp,5.dp).background(brush = linearGradienteDeCores).clip(
-                RoundedCornerShape(10.dp)
-            ))
+            Box(Modifier
+                .size(width = 90.dp, 5.dp)
+                .background(brush = linearGradienteDeCores)
+                .clip(
+                    RoundedCornerShape(10.dp)
+                ))
 
         }
 
@@ -87,7 +100,11 @@ fun ItemDelLoadTabelas(){
             RepeatMode.Restart ))
 
     val linearGradienteDeCores= Brush.linearGradient(colors =cores, start = Offset(40f,50f), end = Offset(animacao.value+40,animacao.value+50))
-    Row(Modifier.fillMaxWidth().height(50.dp).padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 5.dp).background(brush = linearGradienteDeCores)){
+    Row(Modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .padding(top = 3.dp, start = 5.dp, end = 5.dp, bottom = 5.dp)
+        .background(brush = linearGradienteDeCores)){
 
     }
 
@@ -102,9 +119,15 @@ fun DialogoLoad(String: String,estado: EstadosDeLoadCaregamento,cor: Color= Colo
         is EstadosDeLoadCaregamento.load -> {
 
             Dialog(onDismissRequest = {}) {
-                Box(modifier = Modifier.width(300.dp).height(150.dp)){
+                Box(modifier = Modifier
+                    .width(300.dp)
+                    .height(150.dp)){
                     Text(text = "Carregando $String", modifier = Modifier.align(Alignment.TopCenter), fontSize = 18.sp, color = Color.White)
-                    Row(Modifier.fillMaxWidth().fillMaxHeight().padding(top=20.dp).align(Alignment.Center), horizontalArrangement = Arrangement.Center,verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(top = 20.dp)
+                        .align(Alignment.Center), horizontalArrangement = Arrangement.Center,verticalAlignment = Alignment.CenterVertically) {
                         Bolinha(cor,0)
                         Spacer(Modifier.padding(5.dp))
                         Bolinha(cor,100)
@@ -120,11 +143,18 @@ fun DialogoLoad(String: String,estado: EstadosDeLoadCaregamento,cor: Color= Colo
 }
 
 @Composable
-fun LoadBox3pontinhos(modifier: Modifier=Modifier,String: String,estado: EstadosDeLoadCaregamento,cor: Color= Color.Blue){
 
-        Box(modifier = modifier.width(300.dp).height(150.dp)){
-            Text(text = "Carregando $String", modifier = Modifier.align(Alignment.TopCenter), fontSize = 18.sp, color = Color.Black)
-            Row(Modifier.fillMaxWidth().fillMaxHeight().padding(top=20.dp).align(Alignment.Center), horizontalArrangement = Arrangement.Center,verticalAlignment = Alignment.CenterVertically) {
+fun LoadBox3pontinhos(modifier: Modifier=Modifier,titulo: String,estado: EstadosDeLoadCaregamento,cor: Color= Color.Blue){
+
+        Box(modifier = modifier
+            .width(300.dp)
+            .height(150.dp)){
+            Text(text = "Carregando $titulo", modifier = Modifier.align(Alignment.TopCenter), fontSize = 18.sp, color = Color.Black)
+            Row(Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(top = 20.dp)
+                .align(Alignment.Center), horizontalArrangement = Arrangement.Center,verticalAlignment = Alignment.CenterVertically) {
                 Bolinha(cor,0)
                 Spacer(Modifier.padding(5.dp))
                 Bolinha(cor,100)
@@ -135,20 +165,57 @@ fun LoadBox3pontinhos(modifier: Modifier=Modifier,String: String,estado: Estados
 
         }
 }
+
+@Composable
+fun LoadBox3pontinhos2(modifier: Modifier=Modifier, mensagem: String, estado: EstadosDeLoadCaregamento, cor: Color= Color.Blue){
+
+    Box(modifier = modifier
+        .width(300.dp)
+        .height(150.dp)){
+        Text(text = mensagem, modifier = Modifier.align(Alignment.TopCenter), fontSize = 18.sp, color = Color.Black)
+        Row(Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .padding(top = 20.dp)
+            .align(Alignment.Center), horizontalArrangement = Arrangement.Center,verticalAlignment = Alignment.CenterVertically) {
+            Bolinha(cor,0)
+            Spacer(Modifier.padding(5.dp))
+            Bolinha(cor,100)
+            Spacer(Modifier.padding(5.dp))
+            Bolinha(cor,150)
+        }
+
+
+    }
+}
 @Composable
 private fun Bolinha(cor: Color,delay: Int){
     var animacao = rememberInfiniteTransition()
     var ofsetMasimo=-20f
     var transicao=animacao.animateFloat(initialValue = 0f,
                                         targetValue = ofsetMasimo,
-                                        animationSpec = InfiniteRepeatableSpec(tween(durationMillis = 1000, delayMillis = delay, easing = EaseInCubic),
-                                            RepeatMode.Reverse, StartOffset(0))
+                                        animationSpec = InfiniteRepeatableSpec(
+                                            tween(
+                                                durationMillis = 1000,
+                                                delayMillis = delay,
+                                                easing = EaseInCubic
+                                            ),
+                                            RepeatMode.Reverse,
+                                            StartOffset(
+                                                0
+                                            ),
+                                        )
+
                                          )
-    Box(Modifier.size(20.dp).offset(y = transicao.value.dp).drawWithCache({
-        onDrawBehind {
-            drawCircle(color = cor)
-        }
-    })){}}
+    Box(Modifier
+        .size(20.dp)
+        .offset(y = transicao.value.dp)
+        .drawWithCache({
+            onDrawBehind {
+                drawCircle(color = cor)
+            }
+        })){}
+}
 
 
 sealed class TitulosDeLoad(val titulo:String){

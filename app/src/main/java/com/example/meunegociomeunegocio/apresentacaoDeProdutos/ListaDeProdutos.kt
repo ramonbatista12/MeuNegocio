@@ -11,6 +11,7 @@ import com.example.meunegociomeunegocio.viewModel.ViewModelProdutos
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -33,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -76,10 +78,22 @@ fun ListaDeProdutos(modifier: Modifier=Modifier, vm: ViewModelProdutos, windowSi
       BaraDePesquisaProdutos(modifier = Modifier.padding(vertical = 5.5.dp, horizontal = 5.dp).fillMaxWidth(),vm = vm,windowSize,acaoDeEdicaoDoProduto)
     LazyColumn {
         stickyHeader{
-            Cabesalho(windowSize)
+            when(estadosDeLoadCaregamento.value){
+                is EstadosDeLoadCaregamento.Caregado<*>->{
+                    Cabesalho(windowSize)
+                }
+                else -> {}
+            }
+
         }
         when(estadosDeLoadCaregamento.value){
             is EstadosDeLoadCaregamento.Empty -> {
+                item{
+                Row(modifier=Modifier.fillMaxSize().padding(top = 100.dp),verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Text("Lista vaia")
+                    }
+                }
+
                }
             is EstadosDeLoadCaregamento.Erro->{}
             is EstadosDeLoadCaregamento.load -> {
@@ -161,6 +175,14 @@ fun ListaDeProdutosExpandido(modifier: Modifier=Modifier, vm: ViewModelProdutos,
             }
             when(estadosDeLoadCaregamento.value){
                 is EstadosDeLoadCaregamento.Empty -> {
+                    item {
+                        Row(modifier=Modifier.fillMaxSize().padding(top = 100.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center)  {
+                            Text("Lista vasia")
+                        }
+
+
+
+                    }
                 }
                 is EstadosDeLoadCaregamento.Erro->{}
                 is EstadosDeLoadCaregamento.load -> {
@@ -235,7 +257,9 @@ private fun BaraDePesquisaProdutos(modifier: Modifier= Modifier, vm: ViewModelPr
             placeholder = {Text("Pesquisar")},
             leadingIcon ={ Icon(painterResource(R.drawable.baseline_search_24),null) },
             trailingIcon = {Icon(painterResource(R.drawable.baseline_close_24),null,
-                Modifier.clickable(onClick = {estadoDaBara.value=false}))}) },
+                Modifier.clickable(onClick = {estadoDaBara.value=false
+                                              texto.value=""
+                }))}) },
         expanded = estadoDaBara.value,
         onExpandedChange = {estadoDaBara.value=!estadoDaBara.value},
         colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.background) ){
@@ -450,8 +474,10 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
                        Text("Produto : ${produto.nomePrd}")
                        Text("Preço :${produto.preco.toString().formatarPreco()}")
                        Text("Quntidade : ${produto.qnt.toString()}", Modifier)
+
                   }
-                   Row(Modifier.align(Alignment.BottomEnd)) {
+                   HorizontalDivider(modifier=Modifier.align(Alignment.BottomCenter))
+                  /* Row(Modifier.align(Alignment.BottomEnd)) {
                        IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
                            Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                        }
@@ -460,7 +486,7 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
                            Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                        }
 
-                   }
+                   }*/
                }
 
            }
@@ -488,7 +514,7 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
 
 
                     }
-                    FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
+                  /*  FlowRow(Modifier.align(if(!expandidido.value)Alignment.CenterEnd else Alignment.TopEnd)) {
                         IconButton ({},modifier= Modifier.size(30.dp).padding(end = 3.dp)) {
                             Icon(painterResource(R.drawable.create_24),modifier= Modifier.size(20.dp),contentDescription = "")
                         }
@@ -497,7 +523,7 @@ private fun ItemProdutoRequisitado(windowSize: WindowSizeClass, modifier: Modifi
                             Icon(painterResource(R.drawable.baseline_delete_24),modifier= Modifier.size(20.dp), contentDescription = "")
                         }
 
-                    }
+                    }*/
 
                     HorizontalDivider(Modifier.fillMaxWidth())
                 }

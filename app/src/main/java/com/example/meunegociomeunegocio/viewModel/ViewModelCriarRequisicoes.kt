@@ -1,9 +1,15 @@
 package com.example.meunegociomeunegocio.viewModel
 
 import android.net.Uri
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.meunegociomeunegocio.apresentacaoRequisicoes.DialogoCriarPdf
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeClientes
 import com.example.meunegociomeunegocio.cadstroDeRequisicao.SelecaoDeProdutos
 import com.example.meunegociomeunegocio.pdf.CriadorDePfd
@@ -174,6 +180,7 @@ class ViewModelCriarRequisicoes @AssistedInject constructor(private val reposito
     }
     override fun criarPdf(uri: Uri?) {
         viewModelScope.launch {
+
             if(uri==null){
                 _estadosDeCriacaoDePdf.emit(EstadoLoadAcoes.Erro)
                 return@launch
